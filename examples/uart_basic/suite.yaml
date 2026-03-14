@@ -1,0 +1,39 @@
+name: example_test
+
+tests:
+
+  - name: boot_ok
+    steps:
+      - reset: {}
+      - expect_uart:
+          contains: "[BCI] BOOT_OK"
+          within_ms: 3000
+
+  - name: ping
+    steps:
+      - sleep_ms: 100
+      - send_uart: "PING\n"
+      - expect_uart:
+          contains: "[BCI] PONG"
+          within_ms: 1000
+
+  - name: version
+    steps:
+      - send_uart: "GET_VERSION\n"
+      - expect_uart:
+          regex: "\\[BCI\\] FW:[^\\s]+\\s+GIT:[^\\s]+"
+          within_ms: 1000
+
+  - name: led_on
+    steps:
+      - send_uart: "LED1_ON\n"
+      - expect_uart:
+          contains: "[BCI] LED1:ON"
+          within_ms: 1000
+
+  - name: led_off
+    steps:
+      - send_uart: "LED1_OFF\n"
+      - expect_uart:
+          contains: "[BCI] LED1:OFF"
+          within_ms: 1000

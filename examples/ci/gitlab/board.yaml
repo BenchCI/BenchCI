@@ -1,0 +1,16 @@
+name: test_board
+
+flash:
+  backend: cubeprog
+  port: SWD
+  serial: "002B003C3133510936303739"
+
+reset:
+  method: cubeprog
+
+transport:
+  backend: modbus_rtu
+  port: COM12
+  baud: 9600
+  timeout_ms: 500
+  default_slave: 1

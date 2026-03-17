@@ -1,0 +1,32 @@
+name: device_boot_validation_suite
+
+tests:
+  - name: controlled_boot_sequence
+    steps:
+      - reset
+
+      - gpio_expect:
+          line: ready
+          value: true
+          within_ms: 3000
+
+      - expect_uart:
+          contains: "[BOOT] OK"
+          within_ms: 3000
+
+  - name: post_boot_command_response
+    steps:
+      - send_uart: "PING\n"
+
+      - expect_uart:
+          contains: "PONG"
+          within_ms: 1000
+
+  - name: irq_asserted_after_command
+    steps:
+      - send_uart: "TRIGGER_IRQ\n"
+
+      - gpio_wait_edge:
+          line: irq
+          edge: rising
+          within_ms: 2000

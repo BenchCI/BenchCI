@@ -1,0 +1,60 @@
+# BenchCI License
+
+Copyright (c) 2026 BenchCI
+
+All rights reserved.
+
+---
+
+# License Terms
+
+BenchCI is proprietary software.
+
+Permission to use BenchCI is granted only to licensed users under the terms of a commercial agreement.
+
+This license governs the use of the BenchCI software distributed by BenchCI.
+
+---
+
+# Permitted Use
+
+Licensed users may:
+
+- install BenchCI within their organization
+- run BenchCI on development machines or CI environments
+- integrate BenchCI into internal workflows
+- use BenchCI for firmware validation and testing
+
+---
+
+# Restrictions
+
+Users may NOT:
+
+- redistribute BenchCI software
+- publish BenchCI binaries
+- sublicense BenchCI
+- reverse engineer the software for redistribution
+- remove licensing or copyright notices
+
+---
+
+# Ownership
+
+BenchCI and all associated intellectual property remain the exclusive property of BenchCI.
+
+---
+
+# Warranty
+
+BenchCI is provided "as is" without warranty of any kind.
+
+BenchCI shall not be liable for damages arising from the use of the software.
+
+---
+
+# Contact
+
+Licensing inquiries:
+
+tech@benchci.dev

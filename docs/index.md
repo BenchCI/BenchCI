@@ -46,6 +46,7 @@ suite_config.md
 agent.md
 architecture.md
 gitlab_ci.md
+linux_gpio.md
 ```
 
 ---

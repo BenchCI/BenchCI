@@ -155,7 +155,7 @@ On Computer A, start the Agent.
 Example:
 
 ```
-benchci-agent --host 0.0.0.0 --port 8080
+benchci agent serve --host 0.0.0.0 --port 8080
 ```
 
 Agents can be set to require an access token. To enable set `BENCHCI_AGENT_TOKEN` environment variable.

@@ -1,0 +1,30 @@
+version: "1"
+
+suite:
+  name: "multi-node-system-smoke"
+  description: "Bring up a DUT, then coordinate a helper board command in the same suite."
+
+tests:
+  - name: "dut_boots_cleanly"
+    steps:
+      - flash:
+          node: dut
+      - reset:
+          node: dut
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "BOOT OK"
+          within_ms: 4000
+
+  - name: "helper_receives_command"
+    steps:
+      - send_uart:
+          node: helper
+          transport: shell
+          data: "ARM\n"
+      - expect_uart:
+          node: helper
+          transport: shell
+          contains: "ARMED"
+          within_ms: 1000

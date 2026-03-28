@@ -1,200 +1,194 @@
 # Quickstart
 
-This guide walks you through running your first BenchCI test on real hardware.
+This guide shows a first working BenchCI setup using one node, UART output, and firmware flashing.
 
 By the end, you will:
 
-* flash firmware to your device
-* run an automated test suite
-* validate device behavior via UART
-* collect structured test results
+- flash firmware
+- run an automated test suite
+- validate output over UART
+- collect structured results
 
----
-
-## 🧠 How BenchCI Works
+## How BenchCI works
 
 BenchCI uses two configuration files:
 
-* **`board.yaml`** → describes how to connect to your hardware
-* **`suite.yaml`** → defines what to test and how to validate behavior
+- `bench.yaml` describes the hardware bench
+- `suite.yaml` defines the test logic
 
-You then run everything with a single command:
+You then run:
 
+```bash
+benchci run --bench bench.yaml --suite suite.yaml --artifact build/fw.elf
 ```
-benchci run -b board.yaml -s suite.yaml -a build/fw.elf
-```
 
----
+## Prerequisites
 
-## ⚙️ Prerequisites
+You need:
 
-* Python 3.11+
-* A development board (e.g. STM32 Nucleo)
-* Firmware that prints messages over UART
-* Flashing tool installed (e.g. OpenOCD)
+- Python 3.11+
+- BenchCI installed and activated
+- a board connected to your machine
+- a supported flashing tool such as OpenOCD
+- firmware that prints expected UART output
 
----
+Run diagnostics first:
 
-## 📦 Step 1 — Install BenchCI
-
-BenchCI CLI is provided to licensed users.
-
-Follow the installation instructions provided with your access.
-
-Verify your setup:
-
-```
+```bash
 benchci doctor
 ```
 
-Authenticate:
+## Step 1 — Create `bench.yaml`
 
-```
-benchci login
-```
-
----
-
-## 🔌 Step 2 — Create Board Configuration
-
-Create `board.yaml`:
+Example:
 
 ```yaml
-name: nucleo_f4
+version: "1"
 
-flash:
-  backend: openocd
-  interface_cfg: interface/stlink.cfg
-  target_cfg: target/stm32f4x.cfg
+bench:
+  name: nucleo_uart_demo
+  description: Simple single-node UART bench
 
-reset:
-  method: openocd
+defaults:
+  node: dut
+  timeouts:
+    within_ms: 1000
 
-transport:
-  backend: uart
-  port: /dev/ttyUSB0
-  baud: 115200
-  timeout_ms: 100
+nodes:
+  dut:
+    kind: mcu
+    role: target
+
+    flash:
+      backend: openocd
+      interface_cfg: interface/stlink.cfg
+      target_cfg: target/stm32f4x.cfg
+
+    reset:
+      method: openocd
+
+    transports:
+      console:
+        backend: uart
+        port: /dev/ttyUSB0
+        baud: 115200
+        timeout_ms: 100
 ```
 
-This file tells BenchCI:
+This bench defines:
 
-* how to flash your firmware
-* how to reset the device
-* how to communicate with it
+- one node named `dut`
+- OpenOCD flashing
+- OpenOCD reset
+- one UART transport named `console`
 
----
+## Step 2 — Create `suite.yaml`
 
-## 🧪 Step 3 — Create Test Suite
-
-Create `suite.yaml`:
+Example:
 
 ```yaml
-name: firmware_tests
+version: "1"
+
+suite:
+  name: firmware_smoke
 
 tests:
-
   - name: boot_ok
     steps:
       - expect_uart:
+          node: dut
+          transport: console
           contains: "[BOOT] OK"
           within_ms: 3000
 
   - name: ping
     steps:
-      - send_uart: "PING\n"
+      - send_uart:
+          node: dut
+          transport: console
+          data: "PING\n"
+
       - expect_uart:
+          node: dut
+          transport: console
           contains: "PONG"
           within_ms: 1000
 ```
 
-This suite verifies:
+## Step 3 — Validate the files
 
-* the device boots correctly
-* it responds to a simple command
-
-You can validate your configuration before running:
-
-```
-benchci validate -b board.yaml -s suite.yaml
+```bash
+benchci validate --bench bench.yaml --suite suite.yaml
 ```
 
----
+## Step 4 — Run the suite locally
 
-## 🚀 Step 4 — Run the Test
-
-```
+```bash
 benchci run \
-  -b board.yaml \
-  -s suite.yaml \
-  -a build/fw.elf
+  --bench bench.yaml \
+  --suite suite.yaml \
+  --artifact build/fw.elf
 ```
 
 BenchCI will:
 
-1. flash the firmware
-2. reset the device
-3. read UART output
-4. execute test steps
-5. validate results
+1. load and validate the bench
+2. load and validate the suite
+3. flash firmware unless `--skip-flash` is used
+4. start required transports and GPIO
+5. execute the test steps
+6. write artifacts
 
----
+## Step 5 — Inspect results
 
-## 📊 Step 5 — Inspect Results
+BenchCI writes artifacts into `benchci-results/`.
 
-After the run, results are stored in:
+Typical structure:
 
-```
+```text
 benchci-results/
+└── 20260328-142200/
+    ├── results.json
+    └── nodes/
+        └── dut/
+            ├── flash.log
+            └── transport-console.log
 ```
 
-Example contents:
+`results.json` contains the high-level outcome. Per-node logs contain transport, flash, and GPIO details.
 
+## Remote quickstart
+
+If your hardware is attached to another machine running BenchCI Agent:
+
+```bash
+benchci run \
+  --agent http://192.168.1.50:8080 \
+  --bench bench.yaml \
+  --suite suite.yaml \
+  --artifact build/fw.elf \
+  --token "$BENCHCI_AGENT_TOKEN"
 ```
-transport.log   # raw communication logs  
-flash.log       # flashing output  
-gpio.log        # GPIO activity (if used)
-results.json    # structured test results  
+
+If the Agent already has a registered bench:
+
+```bash
+benchci run \
+  --agent http://192.168.1.50:8080 \
+  --bench-id my-bench \
+  --suite suite.yaml \
+  --artifact build/fw.elf \
+  --token "$BENCHCI_AGENT_TOKEN"
 ```
 
----
+In remote mode, the CLI downloads the final artifacts ZIP into `benchci-results/`.
 
-## ✅ Expected Behavior
+## Troubleshooting
 
-If everything is working:
+If the run fails:
 
-* the firmware prints `[BOOT] OK`
-* the device responds `PONG` to `PING`
-* all tests pass
-
----
-
-## ❌ Troubleshooting
-
-If something fails:
-
-* check `transport.log` for UART output
-* verify correct serial port (`/dev/ttyUSB0`)
-* ensure your firmware prints expected messages
-* run `benchci doctor` to validate your setup
-
----
-
-## 🔜 Next Steps
-
-Now that you have a working setup:
-
-* explore GPIO control
-* test Modbus devices
-* integrate BenchCI into CI pipelines
-
-See:
-
-* `examples/uart_basic`
-* `examples/modbus_rtu_device`
-* `examples/modbus_tcp_device`
-* `examples/ci/gitlab`
-
----
-
-BenchCI scales from local debugging to fully automated hardware CI.
+- inspect `results.json`
+- inspect the relevant transport log
+- inspect `flash.log`
+- confirm the serial/CAN/Modbus settings in `bench.yaml`
+- run `benchci doctor --bench bench.yaml`

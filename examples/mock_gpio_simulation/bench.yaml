@@ -1,0 +1,38 @@
+version: "1"
+
+bench:
+  name: "mock-gpio-simulation-bench"
+  description: "Development-only bench using mock GPIO to exercise GPIO-oriented test logic without real hardware."
+
+defaults:
+  node: simulator
+  timeouts:
+    within_ms: 500
+
+artifacts:
+  root_dir: "benchci-results"
+  per_node_dirs: true
+
+nodes:
+  simulator:
+    kind: simulator
+    role: peer
+    tags: ["mock-gpio", "dev"]
+    gpio:
+      trigger_out:
+        backend: mock_gpio
+        channel: 1
+        direction: output
+        active_high: true
+      sensed_in:
+        backend: mock_gpio
+        channel: 2
+        direction: input
+        active_high: true
+        bias: disabled
+      irq_in:
+        backend: mock_gpio
+        channel: 3
+        direction: input
+        active_high: true
+        edge: falling

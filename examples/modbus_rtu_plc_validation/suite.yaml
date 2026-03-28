@@ -1,0 +1,38 @@
+version: "1"
+
+suite:
+  name: "modbus-rtu-plc-validation"
+  description: "Write and read back holding registers and coils on a Modbus RTU device."
+
+tests:
+  - name: "holding_register_round_trip"
+    steps:
+      - modbus_write_single_register:
+          node: plc
+          transport: fieldbus
+          slave: 10
+          address: 100
+          value: 42
+      - modbus_read_holding_registers:
+          node: plc
+          transport: fieldbus
+          slave: 10
+          address: 100
+          count: 1
+          expect: [42]
+
+  - name: "coil_round_trip"
+    steps:
+      - modbus_write_single_coil:
+          node: plc
+          transport: fieldbus
+          slave: 10
+          address: 5
+          value: true
+      - modbus_read_coils:
+          node: plc
+          transport: fieldbus
+          slave: 10
+          address: 5
+          count: 2
+          expect: [true, false]

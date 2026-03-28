@@ -1,0 +1,27 @@
+version: "1"
+
+bench:
+  name: "modbus-tcp-gateway-validation-bench"
+  description: "Bench for validating a Modbus TCP gateway or Ethernet-connected industrial controller."
+
+defaults:
+  node: gateway
+  timeouts:
+    within_ms: 1500
+
+artifacts:
+  root_dir: "benchci-results"
+  per_node_dirs: true
+
+nodes:
+  gateway:
+    kind: gateway
+    role: primary
+    tags: ["modbus-tcp", "ethernet"]
+    transports:
+      api:
+        backend: modbus_tcp
+        host: "192.168.1.50"
+        port: 502
+        timeout_ms: 1000
+        default_slave: 1

@@ -1,32 +1,42 @@
-name: device_boot_validation_suite
+version: "1"
+
+suite:
+  name: "device-boot-validation"
+  description: "Validate that firmware boots, exposes version info, and responds to a simple command."
 
 tests:
-  - name: controlled_boot_sequence
+  - name: "boot_banner_is_printed"
     steps:
-      - reset
-
-      - gpio_expect:
-          line: ready
-          value: true
-          within_ms: 3000
-
+      - flash:
+          node: dut
+      - reset:
+          node: dut
       - expect_uart:
-          contains: "[BOOT] OK"
-          within_ms: 3000
+          node: dut
+          transport: console
+          contains: "[BCI] BOOT_OK"
+          within_ms: 4000
 
-  - name: post_boot_command_response
+  - name: "firmware_version_is_reported"
     steps:
-      - send_uart: "PING\n"
-
+      - send_uart:
+          node: dut
+          transport: console
+          data: "GET_VERSION\n"
       - expect_uart:
-          contains: "PONG"
+          node: dut
+          transport: console
+          regex: "\\[BCI\\] FW:.* GIT:.*"
           within_ms: 1000
 
-  - name: irq_asserted_after_command
+  - name: "ping_command_round_trip"
     steps:
-      - send_uart: "TRIGGER_IRQ\n"
-
-      - gpio_wait_edge:
-          line: irq
-          edge: rising
-          within_ms: 2000
+      - send_uart:
+          node: dut
+          transport: console
+          data: "PING\n"
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "[BCI] PONG"
+          within_ms: 1000

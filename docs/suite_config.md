@@ -1,124 +1,331 @@
 # Suite Configuration
 
-BenchCI test suites define automated hardware tests.
+BenchCI test suites are stored in `suite.yaml`. A suite defines named tests and ordered steps.
 
----
+## Top-level structure
 
-## Structure
+```yaml
+version: "1"
 
-```
-name
-tests
-```
-
----
-
-## Example
-
-```
-name: firmware_tests
+suite:
+  name: smoke
+  description: Optional suite description
 
 tests:
   - name: boot_ok
     steps:
       - expect_uart:
-          contains: "[BOOT] OK"
+          node: dut
+          transport: console
+          contains: "BOOT OK"
           within_ms: 3000
 ```
 
----
+## Main sections
 
-## Core Steps
+### `version`
 
-### reset
+Schema version string.
 
-Reset the device.
+### `suite`
 
+Suite metadata.
+
+```yaml
+suite:
+  name: smoke
+  description: First working suite
 ```
-- reset
+
+### `tests`
+
+Ordered list of test cases.
+
+Each test has:
+
+- `name`
+- `steps`
+
+## Example suite
+
+```yaml
+version: "1"
+
+suite:
+  name: stm32_smoke
+
+tests:
+  - name: boot_ok
+    steps:
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "[BOOT] OK"
+          within_ms: 3000
+
+  - name: ping
+    steps:
+      - send_uart:
+          node: dut
+          transport: console
+          data: "PING\n"
+
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "PONG"
+          within_ms: 1000
+
+  - name: irq_test
+    steps:
+      - gpio_wait_edge:
+          node: dut
+          line: irq
+          edge: rising
+          within_ms: 2000
 ```
 
----
+## Step types
 
-### sleep_ms
+BenchCI currently supports these step types:
 
-Pause execution.
+- `reset`
+- `sleep_ms`
+- `flash`
+- `send_uart`
+- `expect_uart`
+- `modbus_read_holding_registers`
+- `modbus_write_single_register`
+- `modbus_read_coils`
+- `modbus_write_single_coil`
+- `gpio_set`
+- `gpio_get`
+- `gpio_expect`
+- `gpio_wait_edge`
+- `send_can`
+- `expect_can`
 
+## Reset step
+
+```yaml
+- reset:
+    node: dut
 ```
+
+Resets the selected node using the node’s configured `reset.method`.
+
+## Sleep step
+
+```yaml
 - sleep_ms: 100
 ```
 
----
+Pauses execution for the requested number of milliseconds.
 
-### send_uart
+## Flash step
 
+```yaml
+- flash:
+    node: dut
 ```
-- send_uart: "PING\n"
+
+Optional step-level artifact override:
+
+```yaml
+- flash:
+    node: dut
+    artifact: build/alternate.elf
 ```
 
----
+Artifact resolution order is:
 
-### expect_uart
+1. step artifact override
+2. CLI `--artifact`
+3. `node.flash.artifact` from `bench.yaml`
 
+## UART steps
+
+### Send text
+
+```yaml
+- send_uart:
+    node: dut
+    transport: console
+    data: "PING\n"
 ```
+
+### Expect text by substring
+
+```yaml
 - expect_uart:
+    node: dut
+    transport: console
     contains: "PONG"
     within_ms: 1000
 ```
 
----
+### Expect text by regex
 
-## Modbus Steps
-
-* modbus_read_holding_registers
-* modbus_write_single_register
-* modbus_read_coils
-* modbus_write_single_coil
-
----
-
-## GPIO Steps
-
-### gpio_set
-
+```yaml
+- expect_uart:
+    node: dut
+    transport: console
+    regex: "FW:[0-9.]+"
+    within_ms: 1000
 ```
-- gpio_set:
-    line: reset_n
+
+`expect_uart` must define exactly one of:
+
+- `contains`
+- `regex`
+
+## Modbus steps
+
+### Read holding registers
+
+```yaml
+- modbus_read_holding_registers:
+    node: plc
+    transport: fieldbus
+    slave: 1
+    address: 100
+    count: 2
+    expect: [123, 456]
+```
+
+### Write single register
+
+```yaml
+- modbus_write_single_register:
+    node: plc
+    transport: fieldbus
+    slave: 1
+    address: 100
+    value: 42
+```
+
+### Read coils
+
+```yaml
+- modbus_read_coils:
+    node: plc
+    transport: fieldbus
+    slave: 1
+    address: 0
+    count: 2
+    expect: [true, false]
+```
+
+### Write single coil
+
+```yaml
+- modbus_write_single_coil:
+    node: plc
+    transport: fieldbus
+    slave: 1
+    address: 0
     value: true
 ```
 
----
+## GPIO steps
 
-### gpio_get
+### Set logical output value
 
+```yaml
+- gpio_set:
+    node: dut
+    line: reset_n
+    value: false
 ```
+
+### Read logical input value
+
+```yaml
 - gpio_get:
+    node: dut
     line: ready
 ```
 
----
+With expectation:
 
-### gpio_expect
-
+```yaml
+- gpio_get:
+    node: dut
+    line: ready
+    expect: true
 ```
+
+### Wait for logical value
+
+```yaml
 - gpio_expect:
+    node: dut
     line: ready
     value: true
     within_ms: 3000
 ```
 
----
+### Wait for edge
 
-### gpio_wait_edge
-
-```
+```yaml
 - gpio_wait_edge:
+    node: dut
     line: irq
     edge: rising
     within_ms: 2000
 ```
 
-Notes:
+Allowed edges are:
 
-* GPIO lines must be defined in `board.yaml`
-* edge detection requires `edge` configuration
+- `rising`
+- `falling`
+- `both`
+
+## CAN steps
+
+### Send frame
+
+```yaml
+- send_can:
+    node: dut
+    transport: bus
+    frame:
+      id: 257
+      extended: false
+      data: "01 02 0A FF"
+```
+
+### Expect frame
+
+```yaml
+- expect_can:
+    node: dut
+    transport: bus
+    frame:
+      id: 513
+      extended: false
+      data: "AA BB"
+    within_ms: 1000
+```
+
+## Timeout behavior
+
+Steps that need a timeout can either define `within_ms` explicitly or inherit it from:
+
+```yaml
+defaults:
+  timeouts:
+    within_ms: 1000
+```
+
+## Validation rules
+
+BenchCI cross-validates the suite against the bench before execution. For example:
+
+- referenced nodes must exist
+- referenced transports must exist on the selected node
+- transport backend must match the step type
+- referenced GPIO logical line names must exist
+- flashing requires the node to define a flash backend
+
+This catches many configuration mistakes before hardware execution starts.

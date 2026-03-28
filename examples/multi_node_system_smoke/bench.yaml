@@ -1,0 +1,51 @@
+version: "1"
+
+bench:
+  name: "multi-node-system-smoke-bench"
+  description: "Two-node bench with a DUT and a helper controller to demonstrate multi-node orchestration."
+
+defaults:
+  node: dut
+  timeouts:
+    within_ms: 1500
+
+artifacts:
+  root_dir: "benchci-results"
+  per_node_dirs: true
+
+resources:
+  relay_bank:
+    kind: relay_controller
+    driver:
+      type: gpio
+      chip: "/dev/gpiochip2"
+
+nodes:
+  dut:
+    kind: mcu
+    role: primary
+    tags: ["dut", "uart", "openocd"]
+    flash:
+      backend: openocd
+      interface_cfg: "interface/stlink.cfg"
+      target_cfg: "target/stm32f4x.cfg"
+      artifact: "build/dut.elf"
+    reset:
+      method: openocd
+    transports:
+      console:
+        backend: uart
+        port: "/dev/ttyACM0"
+        baud: 115200
+        timeout_ms: 100
+
+  helper:
+    kind: mcu
+    role: helper
+    tags: ["helper", "uart"]
+    transports:
+      shell:
+        backend: uart
+        port: "/dev/ttyUSB5"
+        baud: 115200
+        timeout_ms: 100

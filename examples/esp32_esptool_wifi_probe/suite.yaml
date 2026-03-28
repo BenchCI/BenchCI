@@ -1,0 +1,30 @@
+version: "1"
+
+suite:
+  name: "esp32-esptool-wifi-probe"
+  description: "Flash an ESP32 app and verify that it starts and responds over UART."
+
+tests:
+  - name: "esp_boots_after_flash"
+    steps:
+      - flash:
+          node: esp
+      - reset:
+          node: esp
+      - expect_uart:
+          node: esp
+          transport: console
+          contains: "ESP READY"
+          within_ms: 5000
+
+  - name: "esp_accepts_ping"
+    steps:
+      - send_uart:
+          node: esp
+          transport: console
+          data: "PING\n"
+      - expect_uart:
+          node: esp
+          transport: console
+          contains: "PONG"
+          within_ms: 1000

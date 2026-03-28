@@ -1,0 +1,18 @@
+version: "1"
+
+suite:
+  name: "helper-board-cubeprog"
+  description: "Flash a helper board with CubeProgrammer and verify UART availability."
+
+tests:
+  - name: "flash_and_boot_helper"
+    steps:
+      - flash:
+          node: helper
+      - reset:
+          node: helper
+      - expect_uart:
+          node: helper
+          transport: console
+          contains: "HELPER READY"
+          within_ms: 3000

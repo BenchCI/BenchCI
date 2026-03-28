@@ -1,0 +1,39 @@
+version: "1"
+
+suite:
+  name: "local-gpio-reset-and-ready"
+  description: "Use Linux GPIO to hold the DUT in reset, release it, then verify readiness and an interrupt edge."
+
+tests:
+  - name: "manual_reset_sequence"
+    steps:
+      - gpio_set:
+          node: dut
+          line: boot0
+          value: false
+      - gpio_set:
+          node: dut
+          line: reset_n
+          value: false
+      - sleep_ms: 100
+      - gpio_set:
+          node: dut
+          line: reset_n
+          value: true
+      - gpio_expect:
+          node: dut
+          line: ready
+          value: true
+          within_ms: 3000
+      - gpio_get:
+          node: dut
+          line: ready
+          expect: true
+
+  - name: "interrupt_edge_is_observed"
+    steps:
+      - gpio_wait_edge:
+          node: dut
+          line: irq
+          edge: rising
+          within_ms: 2000

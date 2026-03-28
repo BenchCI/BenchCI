@@ -1,39 +1,52 @@
 # BenchCI Documentation
 
-BenchCI is a lightweight hardware-in-the-loop test runner for embedded systems.
+BenchCI is a hardware validation tool for embedded systems. It lets you define a bench in `bench.yaml`, describe tests in `suite.yaml`, and run those tests locally or through a remote BenchCI Agent.
 
-It allows you to define hardware tests declaratively and run them against real devices using UART, Modbus, and GPIO.
+## What BenchCI can do
 
----
+BenchCI can:
 
-## What You Can Do
+- flash firmware automatically
+- validate device behavior over UART, Modbus RTU, Modbus TCP, and CAN
+- control or observe GPIO through `local_gpio`, `remote_gpio`, or `mock_gpio`
+- run repeatable real-hardware tests in CI
+- produce structured artifacts per run
 
-With BenchCI you can:
+## Core model
 
-* flash firmware automatically
-* validate device behavior over UART and Modbus
-* control and monitor GPIO signals
-* run repeatable hardware tests in CI
-* collect structured test artifacts
+BenchCI is built around:
 
----
+- **bench**: the full execution environment
+- **nodes**: named participants such as `dut`, `controller`, or `gateway`
+- **transports**: UART, Modbus RTU, Modbus TCP, or CAN
+- **GPIO**: logical input/output lines defined per node
+- **suite steps**: declarative actions such as `flash`, `reset`, `send_uart`, `expect_uart`, `gpio_set`, and `expect_can`
 
-## How It Works
+## Execution modes
 
-BenchCI uses two configuration files:
+BenchCI supports:
 
-* `board.yaml` → describes your hardware setup
-* `suite.yaml` → defines test logic
+- local execution on the machine connected to the hardware
+- remote execution through a BenchCI Agent
+- uploaded-bench remote runs
+- registered-bench remote runs using a persistent `bench_id`
+- split deployments where GPIO is controlled through a remote Linux machine
 
-Execution flow:
+## Typical flow
 
+```text
+bench.yaml + suite.yaml
+        ↓
+   benchci run
+        ↓
+ local runner or Agent
+        ↓
+ real hardware bench
+        ↓
+ logs + results.json
 ```
-benchci run → agent → hardware → results
-```
 
----
-
-## Documentation Structure
+## Documentation
 
 ```{toctree}
 :maxdepth: 1
@@ -47,12 +60,18 @@ agent.md
 architecture.md
 gitlab_ci.md
 linux_gpio.md
+examples.md
 ```
 
----
+## Where to start
 
-## Getting Started
+For first-time setup, read:
 
-Start with the quickstart guide:
+1. `installation.md`
+2. `quickstart.md`
+3. `cli.md`
 
-👉 quickstart.md
+If you want to run remote hardware infrastructure, continue with:
+
+4. `agent.md`
+5. `gitlab_ci.md`

@@ -1,85 +1,29 @@
 # Linux GPIO in BenchCI
 
-BenchCI provides native support for controlling and observing Linux GPIO lines.
+BenchCI supports Linux GPIO through the `local_gpio` backend and also supports split deployments through `remote_gpio`.
 
-This allows you to integrate real hardware signals (reset lines, status pins, interrupts, etc.) into automated test workflows.
+## What BenchCI uses
 
----
+BenchCI uses the Linux GPIO character device model, for example:
 
-## What is Linux GPIO?
+- `/dev/gpiochip0`
+- `/dev/gpiochip1`
 
-On Linux systems, GPIOs are exposed via the GPIO character device interface:
+It uses libgpiod-style access rather than the deprecated sysfs GPIO interface.
 
-* /dev/gpiochip0
-* /dev/gpiochip1
+## Why GPIO matters
 
-Each chip contains multiple GPIO lines (channels), which can be:
+GPIO lets BenchCI automate hardware signals such as:
 
-* configured as input or output
-* read or driven
-* monitored for edge events (rising / falling)
+- reset lines
+- boot mode pins
+- ready/status outputs
+- interrupt lines
+- trigger lines between nodes
 
-BenchCI uses the modern libgpiod interface (not the deprecated sysfs GPIO).
+## Local GPIO example
 
----
-
-## Why use GPIO in BenchCI?
-
-GPIO control is essential for real hardware validation:
-
-* reset devices
-* trigger boot modes
-* simulate button presses
-* monitor ready/interrupt signals
-* synchronize test steps with hardware state
-
-Instead of manual interaction, BenchCI allows you to define these behaviors declaratively in your test suite.
-
----
-
-## Example Use Cases
-
-### Reset control
-
-```
-- gpio_set:
-    line: reset_n
-    value: false
-
-- sleep_ms: 100
-
-- gpio_set:
-    line: reset_n
-    value: true
-```
-
-### Wait for device ready
-
-```
-- gpio_expect:
-    line: ready
-    value: true
-    within_ms: 3000
-```
-
-### Wait for interrupt (edge detection)
-
-```
-- gpio_wait_edge:
-    line: irq
-    edge: rising
-    within_ms: 2000
-```
-
----
-
-## Board Configuration
-
-GPIO lines are defined in board.yaml.
-
-Example:
-
-```
+```yaml
 gpio:
   reset_n:
     backend: local_gpio
@@ -106,160 +50,110 @@ gpio:
     edge: rising
 ```
 
----
+## Remote GPIO example
 
-## Configuration Fields
+```yaml
+gpio:
+  reset_n:
+    backend: remote_gpio
+    host: 192.168.1.60
+    port: 8090
+    token_env: BENCHCI_AGENT_TOKEN
+    chip: /dev/gpiochip0
+    line: 17
+    direction: output
+    active_high: false
+```
 
-### Common
+`remote_gpio` delegates GPIO operations to a BenchCI-compatible remote service, typically a BenchCI Agent running on a Linux machine with GPIO access.
 
-* backend: must be local_gpio
-* chip: GPIO chip device (e.g. /dev/gpiochip0)
-* line: line number within the chip
+## Logical vs physical values
 
----
+BenchCI uses **logical** values in suites:
 
-### Direction
+- `true` means active
+- `false` means inactive
 
-direction: output
+The actual electrical level depends on `active_high`.
 
-or
+Examples:
 
-direction: input
+- `active_high: true` → logical `true` maps to physical high
+- `active_high: false` → logical `true` maps to physical low
 
----
+This keeps test logic readable and hardware-agnostic.
 
-### Active Level
-
-active_high: true
-
-or
-
-active_high: false
-
-This defines the logical meaning of the signal:
-
-* true → ACTIVE state
-* false → INACTIVE state
-
-BenchCI automatically maps this to the correct electrical level.
-
-Example:
-
-active_high: true  → value true = GPIO HIGH
-active_high: false → value true = GPIO LOW
-
----
-
-### Bias (input only)
-
-bias: pull_up
-bias: pull_down
-bias: disabled
-
-Used for stabilizing input lines.
-
----
-
-### Edge Detection (input only)
-
-edge: rising
-edge: falling
-edge: both
-
-Required for gpio_wait_edge.
-
----
-
-## Test Suite Steps
+## GPIO suite steps
 
 ### Set output
 
-```
+```yaml
 - gpio_set:
+    node: dut
     line: reset_n
-    value: true
+    value: false
 ```
 
 ### Read input
 
-```
+```yaml
 - gpio_get:
+    node: dut
     line: ready
 ```
 
 ### Wait for value
 
-```
+```yaml
 - gpio_expect:
+    node: dut
     line: ready
     value: true
-    within_ms: 1000
+    within_ms: 3000
 ```
 
 ### Wait for edge
 
-```
+```yaml
 - gpio_wait_edge:
+    node: dut
     line: irq
     edge: rising
     within_ms: 2000
 ```
 
----
+## Input options
 
-## Logical vs Physical Values
+Input lines can define:
 
-BenchCI uses logical values, not raw voltage levels.
+- `bias: disabled`
+- `bias: pull_up`
+- `bias: pull_down`
 
-This means:
+For edge-based waits, the line should also define:
 
-* value: true → signal is ACTIVE
-* value: false → signal is INACTIVE
+- `edge: rising`
+- `edge: falling`
+- `edge: both`
 
-The actual electrical level depends on active_high.
+## Requirements for `local_gpio`
 
-This makes tests portable and easier to understand.
+You need:
 
----
+- Linux
+- `/dev/gpiochipX` devices
+- Python `gpiod` bindings
+- permission to access the GPIO device
 
-## Requirements
+Useful diagnostic command:
 
-To use Linux GPIO:
-
-* Linux system with /dev/gpiochipX
-* libgpiod installed
-* Python gpiod bindings available
-* appropriate permissions to access GPIO devices
-
----
-
-## Permissions
-
-You may need to run:
-
+```bash
+benchci doctor --bench bench.yaml
 ```
-sudo usermod -aG gpio $USER
-```
-
-or run BenchCI with sufficient privileges.
-
----
 
 ## Notes
 
-* GPIO lines are requested exclusively by BenchCI during execution
-* Make sure no other process is using the same GPIO lines
-* Edge detection requires proper hardware configuration (pull-ups/downs)
-
----
-
-## Summary
-
-BenchCI allows you to:
-
-* control GPIO outputs
-* read input states
-* wait for signal changes
-* integrate real hardware signals into CI workflows
-
-This enables reliable, repeatable hardware validation without manual interaction.
+- BenchCI requests GPIO lines exclusively during use
+- do not let another process hold the same lines
+- edge waits depend on correct hardware wiring and pull configuration
+- `remote_gpio` still uses logical line names in tests; only the control path changes

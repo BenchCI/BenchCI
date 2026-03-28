@@ -1,0 +1,38 @@
+version: "1"
+
+suite:
+  name: "modbus-tcp-gateway-validation"
+  description: "Validate register and coil access over Modbus TCP."
+
+tests:
+  - name: "write_and_read_register"
+    steps:
+      - modbus_write_single_register:
+          node: gateway
+          transport: api
+          slave: 1
+          address: 400
+          value: 7
+      - modbus_read_holding_registers:
+          node: gateway
+          transport: api
+          slave: 1
+          address: 400
+          count: 1
+          expect: [7]
+
+  - name: "write_and_read_coil"
+    steps:
+      - modbus_write_single_coil:
+          node: gateway
+          transport: api
+          slave: 1
+          address: 10
+          value: true
+      - modbus_read_coils:
+          node: gateway
+          transport: api
+          slave: 1
+          address: 10
+          count: 1
+          expect: [true]

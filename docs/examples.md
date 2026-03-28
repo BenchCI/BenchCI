@@ -10,28 +10,28 @@ These are not artificial “all-in-one” examples — they reflect **real-world
 
 ---
 
-# 📦 Example Scenarios
+## 📦 Example Scenarios
 
 ---
 
-## 1. Device Boot Validation
+### 1. Device Boot Validation
 
 **Folder:** `examples/device_boot_validation/`
 
-### Use Case
+#### Use Case
 
 Validate that firmware:
 - boots correctly
 - prints expected logs
 - responds to commands over UART
 
-### Covers
+#### Covers
 
 - OpenOCD flashing
 - UART transport
 - `flash`, `reset`, `send_uart`, `expect_uart`
 
-### When to use
+#### When to use
 
 - firmware smoke tests
 - CI validation after build
@@ -39,21 +39,21 @@ Validate that firmware:
 
 ---
 
-## 2. Local GPIO Reset & Ready Monitoring
+### 2. Local GPIO Reset & Ready Monitoring
 
 **Folder:** `examples/local_gpio_reset_and_ready/`
 
-### Use Case
+#### Use Case
 
 Control reset lines and verify device readiness using Linux GPIO.
 
-### Covers
+#### Covers
 
 - `local_gpio`
 - `gpio_set`, `gpio_expect`, `gpio_wait_edge`
 - manual reset sequencing
 
-### When to use
+#### When to use
 
 - hardware bring-up
 - boards without reliable debugger reset
@@ -61,21 +61,21 @@ Control reset lines and verify device readiness using Linux GPIO.
 
 ---
 
-## 3. Remote GPIO Power Cycling
+### 3. Remote GPIO Power Cycling
 
 **Folder:** `examples/remote_gpio_power_cycle/`
 
-### Use Case
+#### Use Case
 
 Control power and signals from a **different machine** via Agent.
 
-### Covers
+#### Covers
 
 - `remote_gpio`
 - distributed setups
 - power cycling DUT
 
-### When to use
+#### When to use
 
 - CI runner ≠ hardware machine
 - remote labs
@@ -83,40 +83,40 @@ Control power and signals from a **different machine** via Agent.
 
 ---
 
-## 4. Modbus RTU PLC Validation
+### 4. Modbus RTU PLC Validation
 
 **Folder:** `examples/modbus_rtu_plc_validation/`
 
-### Use Case
+#### Use Case
 
 Validate a PLC or RS-485 device.
 
-### Covers
+#### Covers
 
 - Modbus RTU transport
 - register + coil operations
 
-### When to use
+#### When to use
 
 - industrial devices
 - embedded fieldbus testing
 
 ---
 
-## 5. Modbus TCP Gateway Validation
+### 5. Modbus TCP Gateway Validation
 
 **Folder:** `examples/modbus_tcp_gateway_validation/`
 
-### Use Case
+#### Use Case
 
 Test Ethernet-connected industrial devices.
 
-### Covers
+#### Covers
 
 - Modbus TCP
 - network-based communication
 
-### When to use
+#### When to use
 
 - gateways
 - PLC over Ethernet
@@ -124,127 +124,127 @@ Test Ethernet-connected industrial devices.
 
 ---
 
-## 6. CAN ECU Handshake
+### 6. CAN ECU Handshake
 
 **Folder:** `examples/can_ecu_handshake/`
 
-### Use Case
+#### Use Case
 
 Validate request/response behavior on CAN bus.
 
-### Covers
+#### Covers
 
 - CAN transport
 - `send_can`, `expect_can`
 
-### When to use
+#### When to use
 
 - automotive ECUs
 - multi-node embedded systems
 
 ---
 
-## 7. CubeProgrammer Helper Board
+### 7. CubeProgrammer Helper Board
 
 **Folder:** `examples/helper_board_cubeprog/`
 
-### Use Case
+#### Use Case
 
 Flash STM32 device using CubeProgrammer.
 
-### Covers
+#### Covers
 
 - `cubeprog` backend
 - UART validation
 
-### When to use
+#### When to use
 
 - STM32 production workflows
 - environments without OpenOCD
 
 ---
 
-## 8. J-Link Gateway Provisioning
+### 8. J-Link Gateway Provisioning
 
 **Folder:** `examples/gateway_jlink_provisioning/`
 
-### Use Case
+#### Use Case
 
 Provision firmware using SEGGER J-Link.
 
-### Covers
+#### Covers
 
 - `jlink` backend
 - high-speed flashing
 
-### When to use
+#### When to use
 
 - production flashing
 - Segger-based setups
 
 ---
 
-## 9. ESP32 esptool Workflow
+### 9. ESP32 esptool Workflow
 
 **Folder:** `examples/esp32_esptool_wifi_probe/`
 
-### Use Case
+#### Use Case
 
 Flash ESP32 firmware and validate startup.
 
-### Covers
+#### Covers
 
 - `esptool` backend
 - UART validation
 
-### When to use
+#### When to use
 
 - ESP32 / ESP-IDF projects
 - IoT devices
 
 ---
 
-## 10. Mock GPIO Simulation
+### 10. Mock GPIO Simulation
 
 **Folder:** `examples/mock_gpio_simulation/`
 
-### Use Case
+#### Use Case
 
 Test logic without real hardware.
 
-### Covers
+#### Covers
 
 - `mock_gpio`
 - GPIO logic testing
 
-### When to use
+#### When to use
 
 - development without hardware
 - CI pipelines without devices
 
 ---
 
-## 11. Multi-Node System Test
+### 11. Multi-Node System Test
 
 **Folder:** `examples/multi_node_system_smoke/`
 
-### Use Case
+#### Use Case
 
 Coordinate multiple devices in one test.
 
-### Covers
+#### Covers
 
 - multiple nodes
 - cross-device interaction
 
-### When to use
+#### When to use
 
 - system-level testing
 - DUT + controller setups
 
 ---
 
-# 🧠 How to Use These Examples
+## 🧠 How to Use These Examples
 
 1. Copy an example folder:
 
@@ -264,9 +264,9 @@ benchci run -b bench.yaml -s suite.yaml -a build/fw.elf
 
 ---
 
-# ⚠️ Important Notes
+## ⚠️ Important Notes
 
-## These are templates
+### These are templates
 
 You MUST adapt:
 - ports
@@ -276,7 +276,7 @@ You MUST adapt:
 
 ---
 
-## One GPIO backend per node
+### One GPIO backend per node
 
 Currently:
 - a node can use **only one GPIO backend**
@@ -286,7 +286,7 @@ Do NOT mix:
 
 ---
 
-## Use smaller benches in practice
+### Use smaller benches in practice
 
 Real setups typically:
 - use 1–2 nodes
@@ -296,7 +296,7 @@ These examples show **capability coverage**, not minimal setups.
 
 ---
 
-# 🚀 Recommended Learning Path
+## 🚀 Recommended Learning Path
 
 If you’re new to BenchCI:
 
@@ -315,7 +315,7 @@ If you’re new to BenchCI:
 
 ---
 
-# 🎯 Summary
+## 🎯 Summary
 
 These examples demonstrate that BenchCI supports:
 

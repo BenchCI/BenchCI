@@ -66,7 +66,7 @@ bench.yaml + suite.yaml
 installation.md
 quickstart.md
 cli.md
-board_config.md
+bench_config.md
 suite_config.md
 agent.md
 architecture.md

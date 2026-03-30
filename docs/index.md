@@ -2,6 +2,18 @@
 
 BenchCI is a hardware validation tool for embedded systems. It lets you define a bench in `bench.yaml`, describe tests in `suite.yaml`, and run those tests locally or through a remote BenchCI Agent.
 
+## Installation
+
+```bash
+pip install benchci
+```
+
+Then activate your license:
+
+```bash
+benchci login
+```
+
 ## What BenchCI can do
 
 BenchCI can:

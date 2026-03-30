@@ -86,7 +86,7 @@ curl http://192.168.1.50:8080/health
 On Computer B:
 
 ```bash
-pip install benchci-0.1.0-py3-none-any.whl
+pip install benchci
 benchci --help
 ```
 

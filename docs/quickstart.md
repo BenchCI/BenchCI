@@ -9,6 +9,12 @@ By the end, you will:
 - validate output over UART
 - collect structured results
 
+## Install BenchCI
+
+```bash
+pip install benchci
+```
+
 ## How BenchCI works
 
 BenchCI uses two configuration files:
@@ -127,7 +133,8 @@ benchci validate --bench bench.yaml --suite suite.yaml
 benchci run \
   --bench bench.yaml \
   --suite suite.yaml \
-  --artifact build/fw.elf
+  --artifact build/fw.elf \
+  --verbose
 ```
 
 BenchCI will:
@@ -138,6 +145,13 @@ BenchCI will:
 4. start required transports and GPIO
 5. execute the test steps
 6. write artifacts
+
+Adding `--verbose` enables richer diagnostics, including:
+
+- detailed step logs
+- better failure context
+- additional transport and flash insights
+- more helpful debugging output when expectations fail
 
 ## Step 5 — Inspect results
 
@@ -167,7 +181,8 @@ benchci run \
   --bench bench.yaml \
   --suite suite.yaml \
   --artifact build/fw.elf \
-  --token "$BENCHCI_AGENT_TOKEN"
+  --token "$BENCHCI_AGENT_TOKEN" \
+  --verbose
 ```
 
 If the Agent already has a registered bench:
@@ -178,7 +193,8 @@ benchci run \
   --bench-id my-bench \
   --suite suite.yaml \
   --artifact build/fw.elf \
-  --token "$BENCHCI_AGENT_TOKEN"
+  --token "$BENCHCI_AGENT_TOKEN" \
+  --verbose
 ```
 
 In remote mode, the CLI downloads the final artifacts ZIP into `benchci-results/`.
@@ -192,3 +208,5 @@ If the run fails:
 - inspect `flash.log`
 - confirm the serial/CAN/Modbus settings in `bench.yaml`
 - run `benchci doctor --bench bench.yaml`
+
+If you are diagnosing a failure, prefer rerunning with `--verbose`.

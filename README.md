@@ -1,14 +1,31 @@
 # BenchCI
 
 [![Documentation](https://img.shields.io/badge/docs-available-blue)](https://docs.benchci.dev)
+[![PyPI](https://img.shields.io/pypi/v/benchci)](https://pypi.org/project/benchci/)
 [![Early Access](https://img.shields.io/badge/status-early--access-orange)](mailto:tech@benchci.dev)
 ![Hardware CI](https://img.shields.io/badge/focus-hardware%20CI-success)
 ![Embedded](https://img.shields.io/badge/target-embedded%20systems-blueviolet)
 [![License](https://img.shields.io/badge/license-commercial-lightgrey)]()
 
-> **Run hardware-in-the-loop tests on real embedded devices — locally or in CI.**
+> **Continuous Integration for Embedded Hardware**
+>
+> Flash firmware, run automated tests on real devices, and validate embedded systems in CI — using simple YAML configs.
 
-BenchCI is a lightweight test runner for embedded systems that lets you define hardware tests declaratively and execute them against real devices using UART, Modbus, CAN, and GPIO.
+---
+
+## 🚀 Quickstart (30 seconds)
+
+```bash
+pip install benchci
+benchci login
+benchci run -b bench.yaml -s suite.yaml -a build/fw.elf
+```
+
+👉 That’s it — BenchCI will:
+- flash firmware  
+- execute tests on real hardware  
+- validate behavior  
+- generate structured artifacts  
 
 ---
 
@@ -16,29 +33,42 @@ BenchCI is a lightweight test runner for embedded systems that lets you define h
 
 Testing embedded firmware usually looks like this:
 
-* Flash firmware manually
-* Open serial terminal
-* Send commands
-* Watch logs
-* Write ad-hoc scripts
-* Repeat for every release
+- flash firmware manually  
+- open serial terminal  
+- send commands  
+- watch logs  
+- write ad-hoc scripts  
+- repeat for every release  
 
-👉 This does **not scale**.
-
-BenchCI turns this into a **repeatable, automated, CI-ready workflow**.
+👉 This is **manual, fragile, and not CI-friendly**
 
 ---
 
-## 🧠 What BenchCI Does
+### BenchCI makes hardware testing:
 
-BenchCI connects your CI pipeline directly to real hardware and allows you to:
+- ✅ declarative  
+- ✅ repeatable  
+- ✅ CI-ready  
+- ✅ scalable across teams  
 
-* Flash firmware automatically (OpenOCD, CubeProgrammer, J-Link, esptool)
-* Interact with devices over UART, Modbus RTU/TCP, and CAN
-* Control and monitor GPIO (local or remote)
-* Validate behavior with structured test steps
-* Run tests on **remote hardware benches via Agent**
-* Generate reproducible test artifacts
+---
+
+## 🧠 Mental Model
+
+BenchCI separates **hardware** and **test logic**:
+
+- `bench.yaml` → your hardware setup  
+- `suite.yaml` → your tests  
+
+```text
+bench.yaml + suite.yaml
+        ↓
+   benchci run
+        ↓
+   real hardware execution
+        ↓
+   results + logs
+```
 
 ---
 
@@ -62,14 +92,27 @@ CI Pipeline / Developer
 
 BenchCI separates:
 
-* test execution (CLI / CI runner)
-* hardware access (Agent + bench machine)
+- execution (CLI / CI)
+- hardware access (Agent)
 
-This allows:
+This enables:
 
-* remote labs
-* shared hardware
-* scalable test infrastructure
+- remote labs  
+- shared benches  
+- scalable hardware testing  
+
+---
+
+## 🧠 What BenchCI Does
+
+BenchCI connects your CI pipeline directly to real hardware and allows you to:
+
+- flash firmware automatically (OpenOCD, CubeProgrammer, J-Link, esptool)  
+- interact with devices over UART, Modbus RTU/TCP, and CAN  
+- control and monitor GPIO (local or remote)  
+- validate behavior with structured test steps  
+- run tests on **remote hardware via Agent**  
+- generate reproducible artifacts  
 
 ---
 
@@ -77,30 +120,30 @@ This allows:
 
 BenchCI uses two files:
 
-### bench.yaml
+### `bench.yaml`
 
 Defines your hardware:
 
-* nodes (DUT, helper boards, PLCs, etc.)
-* transports (UART, Modbus, CAN)
-* flashing configuration
-* GPIO control (local or remote)
+- nodes (DUT, controllers, PLCs, etc.)  
+- transports (UART, Modbus, CAN)  
+- flashing configuration  
+- GPIO control  
 
-### suite.yaml
+### `suite.yaml`
 
 Defines your tests:
 
-* test cases
-* step-by-step actions
-* expected behavior
+- test cases  
+- step-by-step actions  
+- expected behavior  
 
 ---
 
-## 🚀 Example (30 seconds)
+## 🚀 Example
 
-### suite.yaml
+### `suite.yaml`
 
-```
+```yaml
 version: "1"
 
 suite:
@@ -130,49 +173,37 @@ tests:
 
 Run:
 
-```
+```bash
 benchci run -b bench.yaml -s suite.yaml -a build/fw.elf
 ```
-
-BenchCI will:
-
-* flash firmware
-* reset device
-* execute tests
-* validate responses
-* store artifacts
 
 ---
 
 ## 🔌 Supported Interfaces
 
-BenchCI is designed for real hardware interaction:
-
 ### Communication
 
-* UART
-* Modbus RTU
-* Modbus TCP
-* CAN
+- UART  
+- Modbus RTU  
+- Modbus TCP  
+- CAN  
 
 ### Hardware Control
 
-* Linux GPIO
-* Remote GPIO (via Agent)
-* Mock GPIO (for development)
+- Linux GPIO  
+- Remote GPIO (via Agent)  
+- Mock GPIO  
 
 ### Flashing Backends
 
-* OpenOCD
-* STM32CubeProgrammer
-* SEGGER J-Link
-* esptool (ESP32)
+- OpenOCD  
+- STM32CubeProgrammer  
+- SEGGER J-Link  
+- esptool (ESP32)  
 
 ---
 
 ## 🧪 Example Scenarios
-
-BenchCI includes realistic examples:
 
 ```
 examples/
@@ -185,68 +216,61 @@ examples/
 ├── multi_node_system_smoke/
 ```
 
-These demonstrate:
-
-* firmware validation
-* industrial protocol testing
-* remote lab setups
-* multi-device orchestration
-
 ---
 
 ## 📦 Output Artifacts
 
-Each run produces structured outputs:
+BenchCI generates structured outputs:
 
 ```
 benchci-results/
-├── results.json
-├── transport.log
-├── flash.log
-├── gpio.log
+└── <timestamp>/
+    ├── results.json
+    └── nodes/
+        └── dut/
+            ├── flash.log
+            ├── gpio.log
+            └── transport-console.log
 ```
 
 Perfect for:
 
-* CI pipelines
-* debugging
-* traceability
+- CI pipelines  
+- debugging  
+- traceability  
 
 ---
 
 ## 🧰 CLI Workflow
 
-BenchCI provides built-in tools:
-
-* benchci doctor → check environment
-* benchci validate → validate configs
-* benchci login → authenticate
-* benchci run → execute tests
+- `benchci doctor` → check environment  
+- `benchci validate` → validate configs  
+- `benchci login` → authenticate  
+- `benchci run` → execute tests  
 
 ---
 
 ## 🔄 CI Integration
 
-BenchCI is built for automation:
+BenchCI is designed for automation:
 
-* GitLab CI support (example included)
-* Works with GitHub Actions, Jenkins, etc.
-* Agent-based execution for remote hardware
+- GitLab CI (example included)  
+- GitHub Actions / Jenkins  
+- remote execution via Agent  
 
 ---
 
 ## 📚 Documentation
 
-https://docs.benchci.dev
+👉 https://docs.benchci.dev
 
-Key topics:
+Includes:
 
-* Quickstart
-* Installation
-* Bench configuration
-* Suite definition
-* Agent setup
-* CI integration
+- quickstart  
+- installation  
+- configuration guides  
+- agent setup  
+- CI integration  
 
 ---
 
@@ -254,10 +278,10 @@ Key topics:
 
 This repository contains:
 
-* documentation
-* configuration examples
-* CI examples
-* helper tools
+- documentation  
+- configuration examples  
+- CI examples  
+- helper tools  
 
 BenchCI core source code is maintained in a private repository.
 
@@ -267,6 +291,8 @@ BenchCI core source code is maintained in a private repository.
 
 BenchCI is a commercial product.
 
-To request access:
+A valid license key is required to run commands.
 
-[tech@benchci.dev](mailto:tech@benchci.dev)
+For access:
+
+📧 tech@benchci.dev

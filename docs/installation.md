@@ -1,20 +1,17 @@
 # Installation
 
-BenchCI is distributed to licensed users as a Python wheel. It is not installed directly from the public repository.
+BenchCI is distributed via PyPI and can be installed using pip.
 
-## What you receive
+A valid license key is still required to use the tool.
 
-Licensed users receive:
-
-- a BenchCI wheel package
-- a BenchCI license key
+---
 
 ## Install BenchCI
 
-Install the wheel you received:
+Install directly from PyPI:
 
 ```bash
-pip install benchci-0.1.0-py3-none-any.whl
+pip install benchci
 ```
 
 Verify the CLI is available:
@@ -22,6 +19,16 @@ Verify the CLI is available:
 ```bash
 benchci --help
 ```
+
+---
+
+## Upgrade BenchCI
+
+```bash
+pip install --upgrade benchci
+```
+
+---
 
 ## Activate your license
 
@@ -49,6 +56,8 @@ Remove the session:
 benchci logout
 ```
 
+---
+
 ## Verify your environment
 
 Run diagnostics:
@@ -75,12 +84,14 @@ If the agent requires authentication:
 benchci doctor --agent http://192.168.1.50:8080 --token "$BENCHCI_AGENT_TOKEN"
 ```
 
+---
+
 ## Install on a hardware-connected machine
 
-Install BenchCI on the machine that has direct access to the DUT, flasher, serial device, CAN interface, or Linux GPIO hardware:
+Install BenchCI on the machine that has direct access to hardware:
 
 ```bash
-pip install benchci-0.1.0-py3-none-any.whl
+pip install benchci
 ```
 
 Start the Agent:
@@ -96,9 +107,15 @@ export BENCHCI_AGENT_TOKEN=secure-token
 benchci agent serve
 ```
 
+---
+
 ## Install on CI or runner machines
 
 A CI runner only needs the BenchCI CLI and network access to the Agent. It does **not** need direct hardware access for remote runs.
+
+```bash
+pip install benchci
+```
 
 Example remote run:
 
@@ -121,6 +138,8 @@ benchci run \
   --artifact build/fw.elf \
   --token "$BENCHCI_AGENT_TOKEN"
 ```
+
+---
 
 ## External tools
 

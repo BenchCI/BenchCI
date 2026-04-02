@@ -15,6 +15,20 @@ The Agent can:
 - package and serve artifacts
 - provide remote GPIO endpoints for split deployments
 
+## Where the Agent fits
+
+The Agent is the remote execution layer in BenchCI.
+
+It is used when you want:
+
+- developer machines to stay separate from hardware machines
+- CI pipelines to trigger real hardware tests over the network
+- multiple reusable benches behind one machine
+- registered bench IDs instead of repeatedly uploading bench definitions
+- split deployments where a Linux machine exposes GPIO remotely
+
+In the backend-controlled cloud path, the Agent also acts as the execution worker that polls the backend for assigned runs and uploads results after execution.
+
 ## Start the Agent
 
 ```bash
@@ -118,6 +132,8 @@ The client uploads:
 - `bench.yaml`
 - `suite.yaml`
 - optional artifact file
+- `skip_flash`
+- optional `verbose`
 
 This is backward-compatible and does not require a pre-registered bench.
 
@@ -129,6 +145,7 @@ The client submits JSON containing:
 - `suite_yaml`
 - optional uploaded artifact payload
 - `skip_flash`
+- optional `verbose`
 
 This mode reuses a bench already known by the Agent and is the preferred model for shared hardware infrastructure.
 
@@ -185,6 +202,26 @@ Each run stores:
 - current test and step
 - structured events
 
+## Verbose runs
+
+BenchCI supports verbose execution mode for both uploaded-bench and registered-bench runs.
+
+When verbose mode is enabled:
+
+- the runner produces richer step-level diagnostics
+- failure messages include additional context
+- more detailed log information may appear in artifacts
+- event payloads may include richer execution details
+- run behavior stays the same; only observability changes
+
+Verbose mode is controlled by the CLI using `--verbose` and is propagated through the Agent to the underlying `run_local(...)` execution.
+
+Notes:
+
+- verbose output is primarily visible in artifacts and structured events
+- the Agent does not stream raw verbose terminal output directly to clients
+- the best place to inspect verbose remote diagnostics is the downloaded artifact ZIP
+
 ## Scheduling model
 
 The Agent keeps:
@@ -233,5 +270,7 @@ Runs produce artifacts such as:
 - per-node transport logs
 - `flash.log`
 - `gpio.log`
+
+Verbose runs may produce more detailed artifact content for debugging and failure analysis.
 
 The Agent packages the run results directory as a ZIP and serves it through the artifacts endpoint.

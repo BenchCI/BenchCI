@@ -12,6 +12,9 @@ The CLI is the user-facing entry point. It can:
 - authenticate with the BenchCI backend
 - run suites locally
 - submit suites to a remote Agent
+- submit suites through the backend cloud control path
+- list cloud benches
+- inspect cloud runs
 - download remote artifacts
 - start an Agent process
 
@@ -45,6 +48,10 @@ The BenchCI backend handles:
 - license activation
 - token refresh
 - license/session status
+- cloud bench inventory
+- cloud run submission
+- scheduling and assignment
+- agent polling and cloud artifact return
 
 ## High-level flow
 
@@ -53,7 +60,7 @@ Developer / CI
       ↓
  BenchCI CLI
       ↓
-local runner or Agent
+local runner, Agent, or backend-controlled cloud path
       ↓
  real hardware bench
       ↓
@@ -88,6 +95,26 @@ Developer / CI
    run queue
       ↓
  per-bench lock
+      ↓
+  run_local(...)
+      ↓
+ events + artifacts
+      ↓
+BenchCI CLI downloads ZIP
+```
+
+## Backend cloud flow
+
+```text
+Developer / CI
+      ↓
+ BenchCI CLI
+      ↓
+ BenchCI Backend
+      ↓
+ Queue / Scheduler
+      ↓
+ BenchCI-managed or backend-managed Agent
       ↓
   run_local(...)
       ↓
@@ -174,3 +201,31 @@ Remote Agent runs expose the same results through an artifact ZIP.
 ## Why the Agent matters
 
 The Agent turns BenchCI from a single-machine runner into shared hardware infrastructure. Teams can host multiple benches behind one Agent, register them once, and reuse them from CI or developer machines without copying `bench.yaml` into every remote execution environment.
+
+## Execution modes (Direct vs Cloud)
+
+BenchCI can currently be used in three practical ways:
+
+### Direct local mode
+
+- CLI calls `run_local(...)` directly
+- hardware is attached to the same machine
+- simplest development workflow
+
+### Direct remote Agent mode
+
+- CLI submits runs to a customer-managed Agent
+- Agent handles queueing and execution
+- hardware is customer-owned and remote
+
+### Cloud mode
+
+- CLI talks to the BenchCI backend
+- backend schedules work to a cloud-connected Agent
+- artifacts return through the backend path
+
+This lets the same bench and suite definitions scale from:
+
+- single-developer local debugging
+- to shared customer-managed labs
+- to backend-controlled managed benches

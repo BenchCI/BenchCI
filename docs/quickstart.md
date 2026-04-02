@@ -28,6 +28,36 @@ You then run:
 benchci run --bench bench.yaml --suite suite.yaml --artifact build/fw.elf
 ```
 
+## Execution modes
+
+BenchCI supports multiple execution paths using the same bench and suite definitions.
+
+### Direct local execution
+
+The CLI runs `run_local(...)` on the machine that is connected to the hardware.
+
+```bash
+benchci run --bench bench.yaml --suite suite.yaml --artifact build/fw.elf
+```
+
+### Remote Agent execution
+
+The CLI submits the run to a BenchCI Agent on another machine.
+
+```bash
+benchci run   --agent http://agent-host:8080   --bench bench.yaml   --suite suite.yaml   --artifact build/fw.elf
+```
+
+### Registered-bench Agent execution
+
+The Agent already knows the bench, so the CLI only sends the suite and artifact.
+
+```bash
+benchci run   --agent http://agent-host:8080   --bench-id my-bench   --suite suite.yaml   --artifact build/fw.elf
+```
+
+For a full mode-by-mode explanation, see `execution_flow.md`.
+
 ## Prerequisites
 
 You need:

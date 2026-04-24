@@ -1,6 +1,6 @@
 # BenchCI Architecture
 
-BenchCI is a hardware validation platform for embedded systems. It combines a local execution engine with an optional remote Agent control plane.
+BenchCI is a hardware validation platform for embedded systems. It combines a local execution engine with optional remote Agent execution, backend scheduling, workspace-aware access control, and dashboard visibility.
 
 ## Main components
 
@@ -18,13 +18,32 @@ The CLI is the user-facing entry point. It can:
 - download remote artifacts
 - start an Agent process
 
+### Dashboard
+
+The dashboard is the browser-based workspace view. It can show:
+
+- workspace health
+- available benches
+- run history
+- run details
+- run events
+- failure context
+- artifacts
+- setup/onboarding guidance
+
+Dashboard URL:
+
+```text
+https://app.benchci.dev
+```
+
 ### Runner
 
 `run_local(...)` is the core execution engine. It:
 
 - loads `bench.yaml` and `suite.yaml`
 - cross-validates the suite against the bench
-- discovers required nodes, transports, and GPIO
+- discovers required nodes, transports, GPIO, and power resources
 - starts only the resources required by the suite
 - dispatches steps
 - writes structured results
@@ -40,25 +59,36 @@ The Agent adds:
 - event storage
 - artifact serving
 - remote GPIO services
+- cloud assignment polling when running in Cloud Agent mode
 
 ### Backend
 
 The BenchCI backend handles:
 
-- license activation
-- token refresh
-- license/session status
+- account login and refresh
+- workspace membership
+- workspace plan/status/limits
 - cloud bench inventory
+- private/shared/reserved bench visibility
 - cloud run submission
 - scheduling and assignment
-- agent polling and cloud artifact return
+- agent polling
+- agent event reporting
+- cloud artifact return
+- dashboard APIs
+
+Current hosted backend:
+
+```text
+https://benchci-backend.fly.dev
+```
 
 ## High-level flow
 
 ```text
-Developer / CI
+Developer / CI / Dashboard
       ↓
- BenchCI CLI
+ BenchCI CLI or Browser
       ↓
 local runner, Agent, or backend-controlled cloud path
       ↓
@@ -76,7 +106,7 @@ bench.yaml + suite.yaml
         ↓
     run_local(...)
         ↓
- start transports / GPIO
+ start transports / GPIO / power resources
         ↓
  execute steps
         ↓
@@ -114,14 +144,35 @@ Developer / CI
       ↓
  Queue / Scheduler
       ↓
- BenchCI-managed or backend-managed Agent
+ cloud-connected Agent
       ↓
   run_local(...)
       ↓
  events + artifacts
       ↓
-BenchCI CLI downloads ZIP
+Backend + Dashboard + CLI
 ```
+
+## Workspace model
+
+BenchCI uses workspaces to isolate:
+
+- users
+- benches
+- agents
+- runs
+- artifacts
+- permissions
+- plan/usage limits
+
+A user logs in with a BenchCI account. The active workspace determines which benches and runs are visible.
+
+Bench types can include:
+
+- private workspace benches
+- managed shared benches
+- reserved managed benches
+- public demo benches where enabled
 
 ## Configuration model
 
@@ -196,7 +247,7 @@ benchci-results/
             └── transport-uplink.log
 ```
 
-Remote Agent runs expose the same results through an artifact ZIP.
+Remote Agent runs expose the same results through an artifact ZIP. Cloud runs upload artifacts through the backend so the CLI and dashboard can inspect them.
 
 ## Why the Agent matters
 
@@ -222,7 +273,8 @@ BenchCI can currently be used in three practical ways:
 
 - CLI talks to the BenchCI backend
 - backend schedules work to a cloud-connected Agent
-- artifacts return through the backend path
+- artifacts and events return through the backend path
+- dashboard provides visibility
 
 This lets the same bench and suite definitions scale from:
 

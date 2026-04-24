@@ -330,3 +330,26 @@ BenchCI scales from:
 single board debugging  
 → to  
 distributed hardware validation systems
+
+---
+
+## Cloud Mode example path
+
+After validating an example locally, you can run the same suite through Cloud Mode if the bench is connected through a cloud Agent.
+
+```bash
+benchci login
+
+benchci benches list
+
+benchci run --cloud \
+  --bench-id my-cloud-bench \
+  --suite suite.yaml \
+  --artifact build/fw.elf
+```
+
+Use the dashboard to inspect the resulting run:
+
+```text
+https://app.benchci.dev
+```

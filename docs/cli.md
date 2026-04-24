@@ -19,26 +19,18 @@ BenchCI currently provides:
 - `runs list`
 - `runs show`
 - `runs events`
+- `runs artifacts`
 
 ## `benchci login`
 
-Activate a BenchCI license and store a local session.
+Log in with your BenchCI account and store a local session.
 
 ```bash
 benchci login
 ```
 
-Or:
 
-```bash
-benchci login --license-key "YOUR_LICENSE_KEY"
-```
-
-Optional backend override:
-
-```bash
-benchci login --api-url https://your-backend.example.com
-```
+BenchCI uses account and workspace based authentication. Your active workspace determines which Cloud Mode benches and runs are visible.
 
 ## `benchci logout`
 
@@ -50,7 +42,7 @@ benchci logout
 
 ## `benchci whoami`
 
-Show the current BenchCI session and license status.
+Show the current BenchCI session, user, and active workspace.
 
 ```bash
 benchci whoami
@@ -266,7 +258,7 @@ The Agent is used for remote execution and remote GPIO services.
 Start the cloud-connected Agent loop on the current machine.
 
 ```bash
-benchci agent cloud   --backend https://your-backend.example.com   --token YOUR_AGENT_TOKEN   --bench bench.yaml
+benchci agent cloud   --backend https://benchci-backend.fly.dev   --token YOUR_AGENT_TOKEN   --bench bench.yaml
 ```
 
 Optional cloud Agent fields include:
@@ -277,9 +269,11 @@ Optional cloud Agent fields include:
 - `--region`
 - `--poll-interval-s`
 
+The agent token is created by the BenchCI owner/admin side during onboarding.
+
 ## `benchci benches list`
 
-List cloud benches visible through the backend.
+List cloud benches visible through the backend and the active workspace.
 
 ```bash
 benchci benches list
@@ -323,9 +317,17 @@ Show structured events for one cloud run.
 benchci runs events <RUN_ID>
 ```
 
+## `benchci runs artifacts`
+
+Download artifacts for one cloud run.
+
+```bash
+benchci runs artifacts <RUN_ID>
+```
+
 ## Session behavior
 
-Commands that execute runs require a valid BenchCI session. The CLI refreshes the stored session when needed before running hardware operations.
+Commands that execute cloud runs require a valid BenchCI session. The CLI refreshes the stored session when needed before running hardware operations.
 
 ## Result artifacts
 

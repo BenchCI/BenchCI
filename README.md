@@ -21,6 +21,12 @@ benchci login
 benchci run -b bench.yaml -s suite.yaml -a build/fw.elf
 ```
 
+Create or access your BenchCI workspace from the dashboard:
+
+```text
+https://app.benchci.dev
+```
+
 👉 That’s it — BenchCI will:
 - flash firmware  
 - execute tests on real hardware  
@@ -74,14 +80,14 @@ bench.yaml + suite.yaml
 
 ## 🏗️ How It Works
 
-```
+```text
 CI Pipeline / Developer
         │
         ▼
    benchci run
         │
         ▼
-   BenchCI Agent
+   Local Runner / Agent / Cloud Backend
         │
         ▼
    Real Hardware Bench
@@ -93,12 +99,15 @@ CI Pipeline / Developer
 BenchCI separates:
 
 - execution (CLI / CI)
-- hardware access (Agent)
+- hardware access (local runner or Agent)
+- workspace visibility (Dashboard)
+- scheduling and access control (Cloud backend)
 
 This enables:
 
 - remote labs  
 - shared benches  
+- private customer benches  
 - scalable hardware testing  
 
 ---
@@ -110,8 +119,9 @@ BenchCI connects your CI pipeline directly to real hardware and allows you to:
 - flash firmware automatically (OpenOCD, CubeProgrammer, J-Link, esptool)  
 - interact with devices over UART, Modbus RTU/TCP, and CAN  
 - control and monitor GPIO (local or remote)  
+- control supported relay-backed power resources  
 - validate behavior with structured test steps  
-- run tests on **remote hardware via Agent**  
+- run tests locally, through a customer-managed Agent, or through BenchCI Cloud  
 - generate reproducible artifacts  
 
 ---
@@ -128,6 +138,7 @@ Defines your hardware:
 - transports (UART, Modbus, CAN)  
 - flashing configuration  
 - GPIO control  
+- optional bench-level resources such as relay-backed power control  
 
 ### `suite.yaml`
 
@@ -193,6 +204,7 @@ benchci run -b bench.yaml -s suite.yaml -a build/fw.elf
 - Linux GPIO  
 - Remote GPIO (via Agent)  
 - Mock GPIO  
+- relay-backed power workflows  
 
 ### Flashing Backends
 
@@ -205,7 +217,7 @@ benchci run -b bench.yaml -s suite.yaml -a build/fw.elf
 
 ## 🧪 Example Scenarios
 
-```
+```text
 examples/
 ├── device_boot_validation/
 ├── local_gpio_reset_and_ready/
@@ -222,7 +234,7 @@ examples/
 
 BenchCI generates structured outputs:
 
-```
+```text
 benchci-results/
 └── <timestamp>/
     ├── results.json
@@ -243,10 +255,13 @@ Perfect for:
 
 ## 🧰 CLI Workflow
 
+- `benchci login` → authenticate with your BenchCI account/workspace  
+- `benchci whoami` → show current user and active workspace  
 - `benchci doctor` → check environment  
 - `benchci validate` → validate configs  
-- `benchci login` → authenticate  
 - `benchci run` → execute tests  
+- `benchci benches list` → list Cloud Mode benches  
+- `benchci runs list` → inspect Cloud Mode runs  
 
 ---
 
@@ -256,7 +271,18 @@ BenchCI is designed for automation:
 
 - GitLab CI (example included)  
 - GitHub Actions / Jenkins  
-- remote execution via Agent  
+- direct Agent execution  
+- Cloud Mode through the backend scheduler  
+
+---
+
+## 🌐 Dashboard
+
+Use the dashboard to view workspace health, benches, runs, events, failures, and artifacts:
+
+```text
+https://app.benchci.dev
+```
 
 ---
 
@@ -271,6 +297,7 @@ Includes:
 - configuration guides  
 - agent setup  
 - CI integration  
+- Cloud Mode  
 
 ---
 
@@ -287,12 +314,12 @@ BenchCI core source code is maintained in a private repository.
 
 ---
 
-## 💼 License
+## 💼 License and Access
 
 BenchCI is a commercial product.
 
-A valid license key is required to run commands.
+Current onboarding uses BenchCI accounts and workspaces. Early access and production use are activated manually by the BenchCI team, with monthly invoicing for paid customers.
 
-For access:
+For evaluation, pilot access, or pricing:
 
 📧 tech@benchci.dev

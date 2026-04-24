@@ -122,14 +122,12 @@ benchci run \
 
 Add these variables in GitLab project settings:
 
-- `LICENSE_KEY`
 - `BENCHCI_AGENT_URL`
 - `BENCHCI_AGENT_TOKEN`
 
 Example values:
 
 ```text
-LICENSE_KEY=BCI_xxx
 BENCHCI_AGENT_URL=http://192.168.1.50:8080
 BENCHCI_AGENT_TOKEN=secure-token
 ```
@@ -147,7 +145,6 @@ hardware-test:
   tags:
     - benchci
   script:
-    - benchci login --license-key "$LICENSE_KEY"
     - benchci run --agent "$BENCHCI_AGENT_URL" --bench bench.yaml --suite suite.yaml --artifact build/firmware.elf --token "$BENCHCI_AGENT_TOKEN"
   artifacts:
     when: always
@@ -166,7 +163,6 @@ hardware-test:
   tags:
     - benchci
   script:
-    - benchci login --license-key "$LICENSE_KEY"
     - benchci run --agent "$BENCHCI_AGENT_URL" --bench-id nucleo-uart --suite suite.yaml --artifact build/firmware.elf --token "$BENCHCI_AGENT_TOKEN"
   artifacts:
     when: always
@@ -207,3 +203,39 @@ Inside the Agent ZIP you typically get:
 - the runner machine does not need direct hardware access for remote runs
 - the hardware machine must have the required flash tools and runtime dependencies
 - registered-bench mode is usually better for stable shared lab infrastructure
+
+
+## Cloud Mode from GitLab CI
+
+If you want GitLab CI to use backend scheduling instead of talking directly to a hardware Agent, use Cloud Mode.
+
+Create masked/protected GitLab variables:
+
+```text
+BENCHCI_EMAIL=engineer@company.com
+BENCHCI_PASSWORD=********
+BENCHCI_API_URL=https://benchci-backend.fly.dev
+BENCHCI_BENCH_ID=my-cloud-bench
+```
+
+Example:
+
+```yaml
+stages:
+  - hardware-test
+
+hardware-test:
+  stage: hardware-test
+  tags:
+    - benchci
+  script:
+    - pip install --upgrade benchci
+    - benchci login --email "$BENCHCI_EMAIL" --password "$BENCHCI_PASSWORD" --api-url "$BENCHCI_API_URL"
+    - benchci run --cloud --bench-id "$BENCHCI_BENCH_ID" --suite suite.yaml --artifact build/firmware.elf --verbose
+  artifacts:
+    when: always
+    paths:
+      - benchci-results/
+```
+
+Cloud Mode is recommended when the runner should not connect directly to the lab network.

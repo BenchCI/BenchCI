@@ -357,3 +357,37 @@ Backend-specific fields:
 - GPIO lines are referenced from suite steps by logical line name, not by raw chip line number
 - `gpio_wait_edge` requires the input line to be configured with `edge`
 - `remote_gpio` expects a compatible BenchCI Agent API on the remote machine
+
+
+## Cloud Mode notes
+
+When a bench is used with `benchci agent cloud`, BenchCI exports a summary of the bench to the backend.
+
+The backend-visible summary includes:
+
+- bench ID
+- name and description
+- tags
+- status
+- transports
+- flash backends
+- GPIO availability
+- power resource availability
+- node count
+- node names
+
+This summary is used by the scheduler, CLI, and dashboard.
+
+Example cloud Agent startup:
+
+```bash
+benchci agent cloud \
+  --backend https://benchci-backend.fly.dev \
+  --token YOUR_AGENT_TOKEN \
+  --bench bench.yaml \
+  --bench-id my-bench \
+  --tag uart \
+  --agent-name "Lab Agent 01"
+```
+
+Keep `bench.yaml` hardware-specific. Workspace ownership, access grants, and plan limits are managed by the backend, not inside the bench file.

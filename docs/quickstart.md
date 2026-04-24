@@ -15,6 +15,22 @@ By the end, you will:
 pip install benchci
 ```
 
+## Create or access a workspace
+
+BenchCI uses accounts and workspaces for Cloud Mode, dashboard access, and team visibility.
+
+Open:
+
+```text
+https://app.benchci.dev
+```
+
+Then log in from the CLI:
+
+```bash
+benchci login
+```
+
 ## How BenchCI works
 
 BenchCI uses two configuration files:
@@ -56,6 +72,14 @@ The Agent already knows the bench, so the CLI only sends the suite and artifact.
 benchci run   --agent http://agent-host:8080   --bench-id my-bench   --suite suite.yaml   --artifact build/fw.elf
 ```
 
+### Cloud Mode execution
+
+The CLI submits the run to the BenchCI backend, which schedules it on a cloud-connected Agent.
+
+```bash
+benchci run   --cloud   --bench-id my-cloud-bench   --suite suite.yaml   --artifact build/fw.elf
+```
+
 For a full mode-by-mode explanation, see `execution_flow.md`.
 
 ## Prerequisites
@@ -63,7 +87,7 @@ For a full mode-by-mode explanation, see `execution_flow.md`.
 You need:
 
 - Python 3.11+
-- BenchCI installed and activated
+- BenchCI installed
 - a board connected to your machine
 - a supported flashing tool such as OpenOCD
 - firmware that prints expected UART output
@@ -228,6 +252,39 @@ benchci run \
 ```
 
 In remote mode, the CLI downloads the final artifacts ZIP into `benchci-results/`.
+
+## Cloud quickstart
+
+List benches visible to your active workspace:
+
+```bash
+benchci benches list
+```
+
+Run on a cloud bench:
+
+```bash
+benchci run \
+  --cloud \
+  --bench-id my-cloud-bench \
+  --suite suite.yaml \
+  --artifact build/fw.elf \
+  --verbose
+```
+
+Inspect the run:
+
+```bash
+benchci runs list
+benchci runs show <RUN_ID>
+benchci runs events <RUN_ID>
+```
+
+You can also inspect the same run from:
+
+```text
+https://app.benchci.dev
+```
 
 ## Troubleshooting
 

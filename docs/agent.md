@@ -2,6 +2,8 @@
 
 BenchCI Agent runs on machines connected to real hardware. It exposes an HTTP API for remote execution, registered benches, run status, events, artifacts, and remote GPIO.
 
+The Agent can also run in Cloud Mode, where it polls the BenchCI backend for assignments and reports results back to the backend.
+
 ## What the Agent does
 
 The Agent can:
@@ -14,6 +16,7 @@ The Agent can:
 - expose structured run events
 - package and serve artifacts
 - provide remote GPIO endpoints for split deployments
+- connect to the BenchCI backend as a cloud execution worker
 
 ## Where the Agent fits
 
@@ -120,6 +123,7 @@ Bench summaries include:
 - capability summary:
   - transports
   - whether GPIO exists
+  - whether power resources exist
   - flash backends
   - node count
 
@@ -180,6 +184,33 @@ Download artifacts ZIP:
 ```text
 GET /v1/runs/{run_id}/artifacts.zip
 ```
+
+## Cloud Agent mode
+
+In Cloud Agent mode, the Agent does not wait for direct run submissions from a user or CI runner. Instead, it polls the BenchCI backend.
+
+Example:
+
+```bash
+benchci agent cloud \
+  --backend https://benchci-backend.fly.dev \
+  --token YOUR_AGENT_TOKEN \
+  --bench bench.yaml \
+  --bench-id my-bench \
+  --agent-name "Lab Agent 01"
+```
+
+The cloud Agent loop:
+
+1. sends heartbeat
+2. syncs bench summary/capabilities
+3. polls for the next assignment
+4. executes the assigned suite with `run_local(...)`
+5. sends structured events
+6. uploads artifacts
+7. reports completion
+
+The Agent token is created during workspace/customer onboarding by the BenchCI owner/admin process.
 
 ## Run lifecycle
 
@@ -270,7 +301,8 @@ Runs produce artifacts such as:
 - per-node transport logs
 - `flash.log`
 - `gpio.log`
+- power logs when power resources are used
 
 Verbose runs may produce more detailed artifact content for debugging and failure analysis.
 
-The Agent packages the run results directory as a ZIP and serves it through the artifacts endpoint.
+The Agent packages the run results directory as a ZIP and serves it through the artifacts endpoint, or uploads it to the backend in Cloud Agent mode.

@@ -1,18 +1,10 @@
 # BenchCI Documentation
 
-BenchCI is a hardware validation tool for embedded systems. It lets you define a bench in `bench.yaml`, describe tests in `suite.yaml`, and run those tests locally or through a remote BenchCI Agent.
+BenchCI is a hardware validation platform for embedded systems.
 
-## Installation
+Run real hardware tests from CI using the same workflow software teams use for automated pipelines.
 
-```bash
-pip install benchci
-```
-
-Then activate your license:
-
-```bash
-benchci login
-```
+BenchCI lets you define a bench in `bench.yaml`, define tests in `suite.yaml`, and execute those tests locally, through your own BenchCI Agent, or through BenchCI Cloud benches.
 
 ## What BenchCI can do today
 
@@ -22,48 +14,75 @@ BenchCI currently provides:
 - automated firmware flashing
 - protocol-aware validation over UART, Modbus RTU, Modbus TCP, and CAN
 - GPIO automation through `local_gpio`, `remote_gpio`, or `mock_gpio`
+- relay-backed power control workflows
 - local execution on the hardware machine
-- remote execution through a BenchCI Agent
-- uploaded-bench and registered-bench execution models
-- structured artifacts such as `results.json`, transport logs, flash logs, and GPIO logs
+- remote execution through your own BenchCI Agent
+- shared/private hardware execution through BenchCI Cloud
+- workspace-based users, benches, runs, and artifacts
+- dashboard visibility for workspace health, benches, runs, events, failures, and artifacts
+- structured artifacts such as `results.json`, transport logs, flash logs, GPIO logs, and power logs
 - CI-friendly hardware execution workflows
 
-BenchCI can also be used in a backend-controlled cloud path where the CLI talks to the BenchCI backend, the backend schedules work to a managed Agent, and artifacts return to the CLI after execution.
+## Product endpoints
 
-## Core model
+- Website: `https://benchci.dev`
+- Dashboard: `https://app.benchci.dev`
+- Documentation: `https://docs.benchci.dev`
 
-BenchCI is built around:
+## Execution Modes
 
-- **bench**: the full execution environment
-- **nodes**: named participants such as `dut`, `controller`, or `gateway`
-- **transports**: UART, Modbus RTU, Modbus TCP, or CAN
-- **GPIO**: logical input/output lines defined per node
-- **suite steps**: declarative actions such as `flash`, `reset`, `send_uart`, `expect_uart`, `gpio_set`, and `expect_can`
+### Direct Mode
 
-## Execution modes
+Use your own hardware bench.
 
-BenchCI supports:
+- local execution on the hardware machine
+- remote execution through your own BenchCI Agent
+- ideal for internal labs and existing benches
 
-- local execution on the machine connected to the hardware
-- remote execution through a BenchCI Agent
-- uploaded-bench remote runs
-- registered-bench remote runs using a persistent `bench_id`
-- split deployments where GPIO is controlled through a remote Linux machine
-- backend-controlled cloud execution with managed bench inventory and scheduling
+### Cloud Mode
 
-## Typical flow
+Use backend-scheduled benches.
+
+- CLI talks to the BenchCI backend
+- backend schedules work to available benches
+- cloud-connected Agents poll the backend for assignments
+- artifacts and events are returned automatically
+- ideal for evaluations, pilots, private benches, shared benches, and remote teams
+
+### Dashboard
+
+Use the dashboard to inspect:
+
+- workspace health
+- benches
+- runs
+- run events
+- failure context
+- artifacts
+- onboarding/setup guidance
+
+## Typical Flow
 
 ```text
 bench.yaml + suite.yaml
         ↓
    benchci run
         ↓
- local runner or Agent
+ local bench / Agent / Cloud bench
         ↓
- real hardware bench
+ real hardware
         ↓
- logs + results.json
+ logs + results
 ```
+
+## New User Path
+
+1. Create or receive access to a workspace at `https://app.benchci.dev`
+2. Install BenchCI
+3. Run your first local test
+4. Connect a remote Agent bench
+5. Trigger from CI
+6. Scale to Cloud benches
 
 ## Documentation
 
@@ -72,15 +91,19 @@ bench.yaml + suite.yaml
 
 installation.md
 quickstart.md
+cloud.md
 cli.md
 bench_config.md
 suite_config.md
 agent.md
 architecture.md
-execution_flow.md
 gitlab_ci.md
 linux_gpio.md
 examples.md
+dashboard.md
+owner_operations.md
+security.md
+faq.md
 ```
 
 ## Where to start
@@ -91,9 +114,13 @@ For first-time setup, read:
 2. `quickstart.md`
 3. `cli.md`
 
-If you want to run remote hardware infrastructure, continue with:
+For shared infrastructure:
 
 4. `agent.md`
-5. `architecture.md`
-6. `execution_flow.md`
-7. `gitlab_ci.md`
+5. `cloud.md`
+6. `gitlab_ci.md`
+
+For advanced configuration:
+
+7. `bench_config.md`
+8. `suite_config.md`

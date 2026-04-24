@@ -2,7 +2,7 @@
 
 BenchCI is distributed via PyPI and can be installed using pip.
 
-A valid license key is still required to use the tool.
+BenchCI access is tied to a BenchCI account and workspace.
 
 ---
 
@@ -30,19 +30,26 @@ pip install --upgrade benchci
 
 ---
 
-## Activate your license
+## Create or access your workspace
 
-Activate BenchCI with your license key:
+Use the BenchCI dashboard:
+
+```text
+https://app.benchci.dev
+```
+
+For early access customers, the BenchCI team activates paid workspace access manually after onboarding or invoicing.
+
+---
+
+## Log in
+
+Log in with your BenchCI email/password account:
 
 ```bash
 benchci login
 ```
 
-Or provide the key directly:
-
-```bash
-benchci login --license-key "YOUR_LICENSE_KEY"
-```
 
 Check the stored session:
 
@@ -111,13 +118,13 @@ benchci agent serve
 
 ## Install on CI or runner machines
 
-A CI runner only needs the BenchCI CLI and network access to the Agent. It does **not** need direct hardware access for remote runs.
+A CI runner only needs the BenchCI CLI and network access to the Agent or the BenchCI backend. It does **not** need direct hardware access for remote runs.
 
 ```bash
 pip install benchci
 ```
 
-Example remote run:
+Example remote Agent run:
 
 ```bash
 benchci run \
@@ -137,6 +144,17 @@ benchci run \
   --suite suite.yaml \
   --artifact build/fw.elf \
   --token "$BENCHCI_AGENT_TOKEN"
+```
+
+Example Cloud Mode run:
+
+```bash
+benchci login
+
+benchci run --cloud \
+  --bench-id my-cloud-bench \
+  --suite suite.yaml \
+  --artifact build/fw.elf
 ```
 
 ---

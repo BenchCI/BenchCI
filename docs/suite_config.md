@@ -104,6 +104,8 @@ BenchCI currently supports these step types:
 - `gpio_wait_edge`
 - `send_can`
 - `expect_can`
+- `power_set`
+- `power_cycle`
 
 ## Reset step
 
@@ -329,3 +331,29 @@ BenchCI cross-validates the suite against the bench before execution. For exampl
 - flashing requires the node to define a flash backend
 
 This catches many configuration mistakes before hardware execution starts.
+
+
+## Power steps
+
+If your bench defines a supported power resource, suites can control outlets.
+
+### Set power state
+
+```yaml
+- power_set:
+    resource: dut_power
+    outlet: dut
+    state: true
+```
+
+### Power cycle
+
+```yaml
+- power_cycle:
+    resource: dut_power
+    outlet: dut
+    off_ms: 500
+    on_settle_ms: 2000
+```
+
+Power steps are useful for realistic hardware reset, boot recovery, and CI smoke tests.

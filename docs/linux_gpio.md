@@ -157,3 +157,12 @@ benchci doctor --bench bench.yaml
 - do not let another process hold the same lines
 - edge waits depend on correct hardware wiring and pull configuration
 - `remote_gpio` still uses logical line names in tests; only the control path changes
+
+
+## Agent and Cloud Mode
+
+`local_gpio` is used by the machine physically connected to the GPIO device.
+
+In Direct Agent Mode, that machine is usually the Agent host.
+
+In Cloud Mode, the cloud-connected Agent executes `run_local(...)` near the hardware, so GPIO access still happens locally on the Agent machine. The user or CI runner does not need direct access to `/dev/gpiochipX`.

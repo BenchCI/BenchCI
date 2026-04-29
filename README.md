@@ -9,7 +9,32 @@
 
 > **Continuous Integration for Embedded Hardware**
 >
-> Flash firmware, run automated tests on real devices, and validate embedded systems in CI — using simple YAML configs.
+> Run real hardware tests directly from your CI pipeline.
+>
+> Flash firmware, execute tests on real devices, and validate embedded systems — without manual benches or fragile scripts.
+
+---
+
+## 🎥 Demo
+
+Watch BenchCI run real hardware tests directly from CI:
+
+[![BenchCI Demo](https://img.youtube.com/vi/CdnzI5P9GrI/maxresdefault.jpg)](https://youtu.be/CdnzI5P9GrI)
+
+> STM32 + Raspberry Pi + GitHub Actions  
+> No simulation. Real device.
+
+---
+
+## 🧪 What this demo shows
+
+- CI pipeline builds firmware  
+- BenchCI schedules a real hardware bench  
+- Device is flashed automatically  
+- Tests run on actual hardware  
+- Results and logs are returned to CI  
+
+👉 No simulation. No mocks. Real hardware in the loop.
 
 ---
 
@@ -37,16 +62,16 @@ https://app.benchci.dev
 
 ## ⚡ Why BenchCI?
 
-Testing embedded firmware usually looks like this:
+Most embedded testing is still manual:
 
-- flash firmware manually  
-- open serial terminal  
+- flash firmware  
+- open terminal  
 - send commands  
 - watch logs  
-- write ad-hoc scripts  
-- repeat for every release  
 
-👉 This is **manual, fragile, and not CI-friendly**
+This works — until you need repeatability, collaboration, or CI.
+
+BenchCI turns these workflows into repeatable, CI-driven hardware validation.
 
 ---
 
@@ -75,6 +100,12 @@ bench.yaml + suite.yaml
         ↓
    results + logs
 ```
+
+---
+
+## 💡 Key idea
+
+BenchCI turns real hardware into a testable resource in your CI pipeline.
 
 ---
 

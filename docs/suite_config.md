@@ -1,5 +1,9 @@
 # Suite Configuration
 
+Use this page when you are ready to define the actual hardware test logic: steps, expectations, protocols, GPIO checks, power cycles, and validation rules.
+
+---
+
 BenchCI test suites are stored in `suite.yaml`. A suite defines named tests and ordered steps.
 
 ## Top-level structure

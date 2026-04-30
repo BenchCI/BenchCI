@@ -1,46 +1,67 @@
 # BenchCI Cloud
 
-BenchCI Cloud lets you run real hardware tests through the BenchCI backend instead of connecting directly to a bench machine.
+BenchCI Cloud lets you run real hardware tests through the BenchCI backend instead of connecting directly to a hardware machine.
 
-Cloud Mode is now workspace-aware: users see benches, runs, and artifacts that belong to their workspace or have been explicitly granted to their workspace.
+It is the recommended model for CI pipelines, shared benches, private customer benches, and remote teams.
 
-## Why Cloud Mode
+---
 
-Use Cloud Mode when you want:
+## Why Cloud Mode exists
 
-* shared hardware access
-* private customer benches
-* centralized scheduling
-* CI-driven execution
-* no direct access to hardware machines
-* managed demo benches
-* dashboard visibility for runs, benches, events, and artifacts
+Direct hardware access is inconvenient in CI:
 
-## Typical Flow
+- GitHub-hosted runners cannot usually reach your lab network
+- exposing lab machines publicly is risky
+- multiple engineers need shared access
+- hardware should be queued and locked during runs
+- results should be visible in a dashboard
+
+Cloud Mode solves this by using a cloud-connected Agent.
 
 ```text
 CI / Developer
-↓
+      ↓
 BenchCI CLI
-↓
+      ↓
 BenchCI Backend
-↓
+      ↓
 Queue / Scheduler
-↓
-BenchCI Agent
-↓
+      ↓
+Cloud-connected Agent
+      ↓
 Real hardware bench
-↓
+      ↓
 Artifacts + results
-↓
-Dashboard + CLI
 ```
 
-Dashboard:
+The Agent makes outbound requests to the backend, so your lab machine does not need a public inbound port.
 
-```text
-https://app.benchci.dev
+---
+
+## Before using Cloud Mode
+
+Cloud Mode requires at least one BenchCI Agent registered to your workspace and connected to a real hardware bench.
+
+Before running Cloud Mode, make sure:
+
+- the Agent machine is connected to the DUT, debugger, UART/CAN/Modbus adapters, GPIO, relays, or other required hardware
+- local execution works on the Agent machine
+- the Agent is registered to your BenchCI workspace
+- the bench appears in the dashboard
+- the bench is online/idle
+- you know the bench ID to use from CLI or CI
+
+Check visible benches:
+
+```bash
+benchci benches list
 ```
+
+If no benches appear, set up the Agent first:
+
+[BenchCI Agent](agent.md)
+
+---
 
 ## Login
 
@@ -48,22 +69,56 @@ https://app.benchci.dev
 benchci login
 ```
 
-## List Available Benches
+---
+
+## List available benches
 
 ```bash
 benchci benches list
 ```
 
-## Run on Specific Bench
+Example output:
 
-```bash
-benchci run --cloud --bench-id demo-bench --suite suite.yaml --artifact build/fw.elf
+```text
+my-bench    online    idle
 ```
 
-## Run by Capability
+---
+
+## Run on a specific bench
 
 ```bash
-benchci run --cloud --tag uart --transport uart --suite suite.yaml --artifact build/fw.elf
+benchci run \
+  --cloud \
+  --bench-id my-bench \
+  --suite suite.yaml \
+  --artifact build/fw.elf
+```
+
+With richer diagnostics:
+
+```bash
+benchci run \
+  --cloud \
+  --bench-id my-bench \
+  --suite suite.yaml \
+  --artifact build/fw.elf \
+  --verbose
+```
+
+---
+
+## Run by capability
+
+Instead of choosing a bench ID, you can request a bench by capability.
+
+```bash
+benchci run \
+  --cloud \
+  --tag uart \
+  --transport uart \
+  --suite suite.yaml \
+  --artifact build/fw.elf
 ```
 
 Other useful selectors include:
@@ -74,7 +129,11 @@ benchci run --cloud --has-gpio --suite suite.yaml --artifact build/fw.elf
 benchci run --cloud --has-power --suite suite.yaml --artifact build/fw.elf
 ```
 
-## Inspect Runs
+If multiple benches match your request, the scheduler selects an available bench based on capability and availability.
+
+---
+
+## Inspect runs
 
 ```bash
 benchci runs list
@@ -83,16 +142,22 @@ benchci runs events <RUN_ID>
 benchci runs artifacts <RUN_ID>
 ```
 
-The same runs can be inspected from the dashboard.
+The same runs can be inspected from the dashboard:
 
-## Bench Types
+```text
+https://app.benchci.dev
+```
+
+---
+
+## Bench types
 
 BenchCI Cloud can expose:
 
-* shared benches
-* reserved benches
-* private customer benches
-* managed demo benches
+- shared benches
+- reserved benches
+- private customer benches
+- managed demo benches
 
 Typical meanings:
 
@@ -100,6 +165,8 @@ Typical meanings:
 - `managed_shared` → owned by BenchCI/internal workspace and shared by grants
 - `managed_reserved` → reserved for a specific customer workspace
 - `public_demo` → demo/evaluation bench where enabled
+
+---
 
 ## Cloud Agent
 
@@ -113,16 +180,92 @@ benchci agent cloud \
   --token YOUR_AGENT_TOKEN \
   --bench bench.yaml \
   --bench-id my-bench \
-  --agent-name "Lab Agent 01"
+  --agent-name "STM32 Lab Agent"
 ```
 
-Cloud Agents make outbound requests to the backend, so lab machines do not need to expose public inbound ports.
+The Agent:
 
-## Good Use Cases
+1. sends heartbeat
+2. syncs capabilities
+3. receives assignments
+4. executes tests near the hardware
+5. reports events
+6. uploads artifacts
+7. marks the run done or failed
 
-* evaluate BenchCI quickly
-* run nightly smoke tests
-* use hardware without building a full lab first
-* support distributed engineering teams
-* connect private customer-owned benches to a central backend
-* share managed benches across pilot customers
+---
+
+## Workspace visibility
+
+Cloud Mode is workspace-aware.
+
+Users see benches, runs, and artifacts that:
+
+- belong to their workspace
+- are shared with their workspace
+- are reserved for their workspace
+- are public demo benches where enabled
+
+Your active workspace determines what `benchci benches list` and `benchci runs list` show.
+
+---
+
+## Recommended CI pattern
+
+Use secrets for BenchCI credentials and bench selection.
+
+Typical variables:
+
+```text
+BENCHCI_EMAIL
+BENCHCI_PASSWORD
+BENCHCI_API_URL
+BENCHCI_BENCH_ID
+```
+
+Typical CI run:
+
+```bash
+benchci login \
+  --email "$BENCHCI_EMAIL" \
+  --password "$BENCHCI_PASSWORD" \
+  --api-url "$BENCHCI_API_URL"
+
+benchci run \
+  --cloud \
+  --bench-id "$BENCHCI_BENCH_ID" \
+  --suite suite.yaml \
+  --artifact build/fw.elf \
+  --verbose
+```
+
+See:
+
+- [GitHub Actions](github_actions.md)
+- [GitLab CI](gitlab_ci.md)
+
+---
+
+## Common issues
+
+### No benches listed
+
+Check that:
+
+- the Agent is running
+- the Agent token is valid
+- the workspace is active
+- the bench ID is registered
+- you are logged into the expected workspace
+
+### Bench is offline
+
+Check the Agent process and network access from the Agent machine to the backend.
+
+### Run stays queued
+
+Check whether the requested bench is busy/offline or whether capability filters are too restrictive.
+
+### Artifact not found
+
+Check the artifact path in CI and make sure the build job passes it to the hardware-test job.

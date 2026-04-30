@@ -1,104 +1,57 @@
 # Quickstart
 
-This guide shows a first working BenchCI setup using one node, UART output, and firmware flashing.
+Run your first real hardware test with BenchCI.
 
-By the end, you will:
+This guide uses the simplest useful path:
 
-- flash firmware
-- run an automated test suite
-- validate output over UART
-- collect structured results
+```text
+firmware artifact
+        ↓
+benchci run
+        ↓
+flash board
+        ↓
+read UART output
+        ↓
+write structured results
+```
 
-## Install BenchCI
+By the end, you will have a local BenchCI run that flashes firmware, validates UART output, and stores logs under `benchci-results/`.
+
+---
+
+## What you need
+
+- Python 3.11+
+- BenchCI installed
+- a board connected to your machine, for example an STM32 NUCLEO
+- a supported flashing tool, for example OpenOCD
+- firmware that prints expected UART output
+- a serial connection to the board
+
+Install BenchCI first:
 
 ```bash
 pip install benchci
 ```
 
-## Create or access a workspace
-
-BenchCI uses accounts and workspaces for Cloud Mode, dashboard access, and team visibility.
-
-Open:
-
-```text
-https://app.benchci.dev
-```
-
-Then log in from the CLI:
+Log in:
 
 ```bash
 benchci login
 ```
 
-## How BenchCI works
-
-BenchCI uses two configuration files:
-
-- `bench.yaml` describes the hardware bench
-- `suite.yaml` defines the test logic
-
-You then run:
+Check your active account and workspace:
 
 ```bash
-benchci run --bench bench.yaml --suite suite.yaml --artifact build/fw.elf
+benchci whoami
 ```
 
-## Execution modes
-
-BenchCI supports multiple execution paths using the same bench and suite definitions.
-
-### Direct local execution
-
-The CLI runs `run_local(...)` on the machine that is connected to the hardware.
-
-```bash
-benchci run --bench bench.yaml --suite suite.yaml --artifact build/fw.elf
-```
-
-### Remote Agent execution
-
-The CLI submits the run to a BenchCI Agent on another machine.
-
-```bash
-benchci run   --agent http://agent-host:8080   --bench bench.yaml   --suite suite.yaml   --artifact build/fw.elf
-```
-
-### Registered-bench Agent execution
-
-The Agent already knows the bench, so the CLI only sends the suite and artifact.
-
-```bash
-benchci run   --agent http://agent-host:8080   --bench-id my-bench   --suite suite.yaml   --artifact build/fw.elf
-```
-
-### Cloud Mode execution
-
-The CLI submits the run to the BenchCI backend, which schedules it on a cloud-connected Agent.
-
-```bash
-benchci run   --cloud   --bench-id my-cloud-bench   --suite suite.yaml   --artifact build/fw.elf
-```
-
-For a full mode-by-mode explanation, see `execution_flow.md`.
-
-## Prerequisites
-
-You need:
-
-- Python 3.11+
-- BenchCI installed
-- a board connected to your machine
-- a supported flashing tool such as OpenOCD
-- firmware that prints expected UART output
-
-Run diagnostics first:
-
-```bash
-benchci doctor
-```
+---
 
 ## Step 1 — Create `bench.yaml`
+
+`bench.yaml` describes the physical hardware.
 
 Example:
 
@@ -133,16 +86,32 @@ nodes:
         port: /dev/ttyUSB0
         baud: 115200
         timeout_ms: 100
+
+artifacts:
+  root_dir: benchci-results
+  per_node_dirs: true
 ```
 
-This bench defines:
+This defines:
 
 - one node named `dut`
 - OpenOCD flashing
 - OpenOCD reset
 - one UART transport named `console`
+- artifact output under `benchci-results/`
+
+Adjust these fields for your board:
+
+- `target_cfg`
+- UART `port`
+- UART `baud`
+- optional probe serials or extra flash arguments
+
+---
 
 ## Step 2 — Create `suite.yaml`
+
+`suite.yaml` defines the test logic.
 
 Example:
 
@@ -151,6 +120,7 @@ version: "1"
 
 suite:
   name: firmware_smoke
+  description: Flash firmware and validate boot logs
 
 tests:
   - name: boot_ok
@@ -175,13 +145,26 @@ tests:
           within_ms: 1000
 ```
 
-## Step 3 — Validate the files
+This suite checks that:
+
+- the firmware prints `[BOOT] OK`
+- the device responds to `PING` with `PONG`
+
+---
+
+## Step 3 — Validate configuration
+
+Validate without touching hardware:
 
 ```bash
 benchci validate --bench bench.yaml --suite suite.yaml
 ```
 
-## Step 4 — Run the suite locally
+If validation fails, fix the config before running on the device.
+
+---
+
+## Step 4 — Run locally
 
 ```bash
 benchci run \
@@ -193,19 +176,14 @@ benchci run \
 
 BenchCI will:
 
-1. load and validate the bench
-2. load and validate the suite
-3. flash firmware unless `--skip-flash` is used
-4. start required transports and GPIO
-5. execute the test steps
-6. write artifacts
+1. load and validate `bench.yaml`
+2. load and validate `suite.yaml`
+3. flash the artifact unless `--skip-flash` is used
+4. start only the required transports and GPIO resources
+5. execute the suite steps
+6. write logs and structured results
 
-Adding `--verbose` enables richer diagnostics, including:
-
-- detailed step logs
-- better failure context
-- additional transport and flash insights
-- more helpful debugging output when expectations fail
+---
 
 ## Step 5 — Inspect results
 
@@ -223,77 +201,54 @@ benchci-results/
             └── transport-console.log
 ```
 
-`results.json` contains the high-level outcome. Per-node logs contain transport, flash, and GPIO details.
+`results.json` contains the high-level outcome.
 
-## Remote quickstart
+Per-node logs contain flash, transport, GPIO, power, or protocol logs depending on the bench and suite.
 
-If your hardware is attached to another machine running BenchCI Agent:
+---
 
-```bash
-benchci run \
-  --agent http://192.168.1.50:8080 \
-  --bench bench.yaml \
-  --suite suite.yaml \
-  --artifact build/fw.elf \
-  --token "$BENCHCI_AGENT_TOKEN" \
-  --verbose
-```
+## Common first-run problems
 
-If the Agent already has a registered bench:
+### UART port is wrong
+
+Check available ports:
 
 ```bash
-benchci run \
-  --agent http://192.168.1.50:8080 \
-  --bench-id my-bench \
-  --suite suite.yaml \
-  --artifact build/fw.elf \
-  --token "$BENCHCI_AGENT_TOKEN" \
-  --verbose
+ls /dev/ttyUSB* /dev/ttyACM*
 ```
 
-In remote mode, the CLI downloads the final artifacts ZIP into `benchci-results/`.
+Update `bench.yaml`.
 
-## Cloud quickstart
+### Permission denied on serial port
 
-List benches visible to your active workspace:
+On Linux, add your user to the serial group used by your distribution, often `dialout`:
 
 ```bash
-benchci benches list
+sudo usermod -aG dialout $USER
 ```
 
-Run on a cloud bench:
+Then log out and back in.
+
+### Flash tool not found
+
+Install the required flash tool, for example:
 
 ```bash
-benchci run \
-  --cloud \
-  --bench-id my-cloud-bench \
-  --suite suite.yaml \
-  --artifact build/fw.elf \
-  --verbose
+sudo apt-get install -y openocd
 ```
 
-Inspect the run:
+### Boot message not found
 
-```bash
-benchci runs list
-benchci runs show <RUN_ID>
-benchci runs events <RUN_ID>
+Increase timeout or verify the firmware really prints the expected text:
+
+```yaml
+within_ms: 5000
 ```
 
-You can also inspect the same run from:
+---
 
-```text
-https://app.benchci.dev
-```
+## Next step: connect CI
 
-## Troubleshooting
+Once local execution works, move to the end-to-end CI flow:
 
-If the run fails:
-
-- inspect `results.json`
-- inspect the relevant transport log
-- inspect `flash.log`
-- confirm the serial/CAN/Modbus settings in `bench.yaml`
-- run `benchci doctor --bench bench.yaml`
-
-If you are diagnosing a failure, prefer rerunning with `--verbose`.
+[End-to-End Example](end_to_end_example.md)

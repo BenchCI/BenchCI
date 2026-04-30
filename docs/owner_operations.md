@@ -1,5 +1,9 @@
 # Owner Operations
 
+Use this page for the early-access manual onboarding and workspace activation process.
+
+---
+
 This document describes the manual operations model for early BenchCI customers.
 
 BenchCI currently uses manual onboarding and monthly invoicing rather than self-serve payment automation.

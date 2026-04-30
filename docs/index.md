@@ -1,88 +1,126 @@
 # BenchCI Documentation
 
-BenchCI is a hardware validation platform for embedded systems.
+## Run real hardware tests from CI
 
-Run real hardware tests from CI using the same workflow software teams use for automated pipelines.
+BenchCI lets embedded teams flash firmware, run tests on real devices, and return logs/results to CI automatically.
 
-BenchCI lets you define a bench in `bench.yaml`, define tests in `suite.yaml`, and execute those tests locally, through your own BenchCI Agent, or through BenchCI Cloud benches.
-
-## What BenchCI can do today
-
-BenchCI currently provides:
-
-- declarative hardware testing using `bench.yaml` + `suite.yaml`
-- automated firmware flashing
-- protocol-aware validation over UART, Modbus RTU, Modbus TCP, and CAN
-- GPIO automation through `local_gpio`, `remote_gpio`, or `mock_gpio`
-- relay-backed power control workflows
-- local execution on the hardware machine
-- remote execution through your own BenchCI Agent
-- shared/private hardware execution through BenchCI Cloud
-- workspace-based users, benches, runs, and artifacts
-- dashboard visibility for workspace health, benches, runs, events, failures, and artifacts
-- structured artifacts such as `results.json`, transport logs, flash logs, GPIO logs, and power logs
-- CI-friendly hardware execution workflows
-
-## Product endpoints
-
-- Website: `https://benchci.dev`
-- Dashboard: `https://app.benchci.dev`
-- Documentation: `https://docs.benchci.dev`
-
-## Execution Modes
-
-### Direct Mode
-
-Use your own hardware bench.
-
-- local execution on the hardware machine
-- remote execution through your own BenchCI Agent
-- ideal for internal labs and existing benches
-
-### Cloud Mode
-
-Use backend-scheduled benches.
-
-- CLI talks to the BenchCI backend
-- backend schedules work to available benches
-- cloud-connected Agents poll the backend for assignments
-- artifacts and events are returned automatically
-- ideal for evaluations, pilots, private benches, shared benches, and remote teams
-
-### Dashboard
-
-Use the dashboard to inspect:
-
-- workspace health
-- benches
-- runs
-- run events
-- failure context
-- artifacts
-- onboarding/setup guidance
-
-## Typical Flow
-
-```text
-bench.yaml + suite.yaml
-        ↓
-   benchci run
-        ↓
- local bench / Agent / Cloud bench
-        ↓
- real hardware
-        ↓
- logs + results
+```bash
+benchci run --cloud --bench-id my-bench --suite suite.yaml --artifact build/fw.elf
 ```
 
-## New User Path
+No simulation. No manual serial-terminal testing. Real hardware in the loop.
 
-1. Create or receive access to a workspace at `https://app.benchci.dev`
-2. Install BenchCI
-3. Run your first local test
-4. Connect a remote Agent bench
-5. Trigger from CI
-6. Scale to Cloud benches
+---
+
+## The problem BenchCI solves
+
+Most embedded validation still depends on manual bench work:
+
+- flash firmware by hand
+- open a terminal
+- send commands manually
+- watch logs
+- copy results into a ticket or release note
+
+That is fine for early bring-up.
+
+It is not enough for repeatable CI, shared hardware, pull-request validation, release gates, or remote teams.
+
+---
+
+## What BenchCI gives you
+
+BenchCI turns hardware validation into a repeatable CI workflow:
+
+```text
+CI builds firmware
+        ↓
+BenchCI schedules a hardware run
+        ↓
+Agent flashes and tests a real device
+        ↓
+Results, logs, and artifacts return to CI/dashboard
+```
+
+You can start locally, then move the same test model to a remote Agent or BenchCI Cloud.
+
+---
+
+## Fastest path
+
+If you already have a board connected to your machine:
+
+```bash
+pip install benchci
+benchci login
+benchci run -b bench.yaml -s suite.yaml -a build/fw.elf
+```
+
+BenchCI will load your hardware configuration, flash the firmware, run the suite, and write results under `benchci-results/`.
+
+---
+
+## Core mental model
+
+```text
+bench.yaml  -> describes the hardware
+suite.yaml  -> describes the test logic
+benchci run -> executes the suite on real hardware
+```
+
+A **bench** is your physical setup: DUT, debugger, UART/CAN/Modbus adapters, GPIO, relays, and related resources.
+
+A **suite** is what should happen: flash, reset, send commands, wait for logs, read registers, check GPIO, validate CAN frames, or cycle power.
+
+An **Agent** is the hardware-connected process that lets CI or remote users run tests without sitting next to the device.
+
+BenchCI **Cloud Mode** adds workspace-aware scheduling, shared/private benches, dashboard visibility, and CI-friendly execution.
+
+---
+
+## Recommended path for new users
+
+1. [Installation](installation.md)
+2. [Quickstart](quickstart.md)
+3. [End-to-End Example](end_to_end_example.md)
+4. [Agent](agent.md)
+5. [Cloud Mode](cloud.md)
+6. [GitHub Actions](github_actions.md) or [GitLab CI](gitlab_ci.md)
+
+Reference pages are available after the getting-started flow.
+
+---
+
+## What BenchCI supports today
+
+Communication:
+
+- UART
+- Modbus RTU
+- Modbus TCP
+- CAN
+
+Flashing:
+
+- OpenOCD
+- STM32CubeProgrammer
+- SEGGER J-Link
+- esptool
+
+Control:
+
+- Linux GPIO
+- remote GPIO through Agent
+- mock GPIO
+- relay-backed power workflows
+
+Execution:
+
+- local runs
+- direct Agent runs
+- backend-controlled Cloud Mode runs
+
+---
 
 ## Documentation
 
@@ -91,36 +129,19 @@ bench.yaml + suite.yaml
 
 installation.md
 quickstart.md
+end_to_end_example.md
+agent.md
 cloud.md
-cli.md
+github_actions.md
+gitlab_ci.md
 bench_config.md
 suite_config.md
-agent.md
-architecture.md
-gitlab_ci.md
-linux_gpio.md
+cli.md
 examples.md
 dashboard.md
-owner_operations.md
+architecture.md
+linux_gpio.md
 security.md
 faq.md
+owner_operations.md
 ```
-
-## Where to start
-
-For first-time setup, read:
-
-1. `installation.md`
-2. `quickstart.md`
-3. `cli.md`
-
-For shared infrastructure:
-
-4. `agent.md`
-5. `cloud.md`
-6. `gitlab_ci.md`
-
-For advanced configuration:
-
-7. `bench_config.md`
-8. `suite_config.md`

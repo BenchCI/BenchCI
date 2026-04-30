@@ -1,7 +1,6 @@
-
 # Security
 
-BenchCI is designed so teams can automate hardware safely.
+Use this page to understand account sessions, Agent tokens, Cloud Agent connectivity, workspace isolation, and recommended operational practices.
 
 ## Authentication
 

@@ -1,11 +1,30 @@
 # BenchCI CLI
 
+Use this page as the command reference for login, validation, local runs, Agent runs, Cloud Mode, benches, runs, artifacts, and diagnostics.
+
+---
+
 The BenchCI CLI is the main entry point for validating configs, running tests, managing sessions, and starting the Agent.
+
+
+## Common commands
+
+```bash
+benchci login
+benchci whoami
+benchci validate --bench bench.yaml --suite suite.yaml
+benchci run --bench bench.yaml --suite suite.yaml --artifact build/fw.elf
+benchci benches list
+benchci run --cloud --bench-id my-cloud-bench --suite suite.yaml --artifact build/fw.elf
+```
+
+---
 
 ## Available commands
 
 BenchCI currently provides:
 
+- `register`
 - `login`
 - `logout`
 - `whoami`
@@ -20,6 +39,16 @@ BenchCI currently provides:
 - `runs show`
 - `runs events`
 - `runs artifacts`
+
+## `benchci register`
+
+Create a new BenchCI account and your first workspace.
+
+```bash
+benchci register
+```
+
+Optionally, use the dashboard (app.benchci.dev)
 
 ## `benchci login`
 

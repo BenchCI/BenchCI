@@ -1,5 +1,9 @@
 # Bench Configuration
 
+Use this page when you are ready to describe a real bench: DUTs, transports, GPIO, flash tools, reset behavior, and artifacts.
+
+---
+
 BenchCI bench configuration is stored in `bench.yaml`. It describes the real execution environment: nodes, transports, GPIO, flashing, reset behavior, defaults, and artifact settings.
 
 ## Top-level structure

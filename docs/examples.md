@@ -1,10 +1,26 @@
 # BenchCI Examples
 
+Use these examples as starting templates for real embedded workflows such as boot validation, GPIO reset, Modbus, CAN, ESP32, J-Link, and multi-node testing.
+
+---
+
 This page contains **realistic example scenarios** showing how to use BenchCI in different setups.
 
 Each example includes:
 - `bench.yaml` → hardware configuration
 - `suite.yaml` → test logic
+
+
+## Start here
+
+If you are new to BenchCI, begin with:
+
+- `examples/device_boot_validation/`
+
+That example gives you the simplest useful path: flash firmware, read UART output, and validate boot behavior.
+
+---
+
 
 These are not artificial “all-in-one” examples — they reflect **real-world use cases**.
 

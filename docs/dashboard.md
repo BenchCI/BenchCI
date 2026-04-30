@@ -8,6 +8,35 @@ Dashboard URL:
 https://app.benchci.dev
 ```
 
+Use it after your first Cloud run to inspect run status, events, logs, artifacts, and failure context.
+
+---
+
+## Why the dashboard matters
+
+The CLI is good for running tests.
+
+The dashboard is good for understanding the state of your hardware validation system:
+
+- which benches are online
+- which runs are queued or running
+- what failed recently
+- which workspace resources are available
+- what artifacts were produced
+- whether a bench is ready for CI use
+
+---
+
+## Login
+
+Use your BenchCI email and password.
+
+If you are creating the first account for a company, register a workspace owner account.
+
+If you were invited to an existing workspace, use the invite link.
+
+---
+
 ## What the dashboard shows
 
 The dashboard is designed to show:
@@ -22,11 +51,7 @@ The dashboard is designed to show:
 - artifacts
 - setup guidance
 
-## Login
-
-Use your BenchCI email and password.
-
-If you are creating the first account for a company, register a workspace owner account. If you were invited to an existing workspace, use the invite link.
+---
 
 ## Core pages
 
@@ -40,6 +65,8 @@ Shows high-level workspace health:
 - running runs
 - pass/fail signals
 - recent failures
+
+Use this page as the team-level status view.
 
 ### Runs
 
@@ -74,3 +101,10 @@ Bench cards include:
 ### Setup
 
 Shows onboarding commands and workspace setup guidance.
+
+Use this page when:
+
+- connecting a new Agent
+- checking Cloud Mode setup
+- copying CLI commands
+- onboarding a new workspace

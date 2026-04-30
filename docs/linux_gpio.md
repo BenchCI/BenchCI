@@ -1,5 +1,9 @@
 # Linux GPIO in BenchCI
 
+Use this page when your bench needs reset lines, ready signals, interrupts, trigger pins, or relay control through Linux GPIO.
+
+---
+
 BenchCI supports Linux GPIO through the `local_gpio` backend and also supports split deployments through `remote_gpio`.
 
 ## What BenchCI uses

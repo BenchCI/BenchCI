@@ -1,233 +1,139 @@
 # GitLab CI Integration
 
-This guide shows how to trigger BenchCI hardware tests from GitLab CI using a remote BenchCI Agent.
+Run real hardware tests from a GitLab pipeline.
 
-## Target setup
+This is the recommended production flow:
 
-Use two machines:
+```text
+GitLab CI builds firmware
+        ↓
+BenchCI CLI schedules a cloud run
+        ↓
+Cloud-connected Agent flashes and tests real hardware
+        ↓
+Results return to GitLab artifacts and the BenchCI dashboard
+```
 
-- **Computer A**: hardware machine running BenchCI Agent
-- **Computer B**: GitLab Runner machine running the BenchCI CLI
+Use this when you want pipeline validation on real devices instead of compile-only firmware checks.
 
-The DUT, debugger, UART/CAN interfaces, and Linux GPIO devices should be connected to Computer A.
+---
+Run BenchCI hardware tests from a GitLab pipeline.
 
-## Architecture
+This guide shows the recommended GitLab CI flow for BenchCI:
+
+1. build firmware in GitLab CI
+2. upload or reference the firmware artifact
+3. run BenchCI against real hardware
+4. store BenchCI results as GitLab artifacts
+
+---
+
+## Before using Cloud Mode
+
+Cloud Mode requires at least one BenchCI Agent registered to your workspace and connected to a real hardware bench.
+
+Before running CI, make sure:
+
+- the Agent machine is connected to the DUT, debugger, UART/CAN/Modbus adapters, GPIO, relays, or other required hardware
+- the Agent is registered to your BenchCI workspace
+- the bench appears in the dashboard
+- the bench is online/idle
+- you know the bench ID to use in CI
+
+You can check visible benches with:
+
+benchci benches list
+
+Use that bench ID as:
+
+BENCHCI_BENCH_ID=my-cloud-bench
+
+---
+
+## Recommended setup
+
+For most teams, use BenchCI Cloud Mode from GitLab CI.
 
 ```text
 GitLab CI job
     ↓
-BenchCI CLI on runner
+BenchCI CLI
+    ↓
+BenchCI API
     ↓
 BenchCI Agent
     ↓
 real hardware bench
     ↓
-artifacts + results
+results + logs
 ```
+
+This keeps your GitLab Runner separate from the hardware lab network.
+
+---
 
 ## Requirements
 
 Before starting, make sure you have:
 
 - a GitLab project
-- a GitLab Runner you control
-- BenchCI installed on the runner machine
-- BenchCI installed on the hardware machine
-- a working bench configuration
-- a working suite
-- a firmware artifact
-- network connectivity from runner to Agent
+- a BenchCI account and workspace
+- a registered BenchCI bench
+- a working `suite.yaml`
+- firmware produced by your pipeline
+- BenchCI secrets stored as GitLab CI/CD variables
 
-## Step 1 — Verify local execution on the hardware machine
+---
 
-On Computer A, first make sure BenchCI can run the hardware **locally**:
+## Step 1 — Add GitLab variables
 
-```bash
-benchci run --bench bench.yaml --suite suite.yaml --artifact build/firmware.elf
-```
-
-Do not continue until this works.
-
-## Step 2 — Start the Agent on the hardware machine
-
-```bash
-benchci agent serve --host 0.0.0.0 --port 8080
-```
-
-If you want authentication:
-
-```bash
-export BENCHCI_AGENT_TOKEN=secure-token
-benchci agent serve --host 0.0.0.0 --port 8080
-```
-
-## Step 3 — Verify reachability from the runner machine
-
-From Computer B:
-
-```bash
-benchci doctor --agent http://192.168.1.50:8080
-```
-
-Or, if auth is enabled:
-
-```bash
-benchci doctor --agent http://192.168.1.50:8080 --token "$BENCHCI_AGENT_TOKEN"
-```
-
-You can also test with curl:
-
-```bash
-curl http://192.168.1.50:8080/health
-```
-
-## Step 4 — Install BenchCI on the runner machine
-
-On Computer B:
-
-```bash
-pip install benchci
-benchci --help
-```
-
-## Step 5 — Test the remote flow manually
-
-Before writing a pipeline, test the full path from the runner machine.
-
-### Uploaded-bench mode
-
-```bash
-benchci run \
-  --agent http://192.168.1.50:8080 \
-  --bench bench.yaml \
-  --suite suite.yaml \
-  --artifact build/firmware.elf \
-  --token "$BENCHCI_AGENT_TOKEN"
-```
-
-### Registered-bench mode
-
-If the Agent already has `bench_id: nucleo-uart`:
-
-```bash
-benchci run \
-  --agent http://192.168.1.50:8080 \
-  --bench-id nucleo-uart \
-  --suite suite.yaml \
-  --artifact build/firmware.elf \
-  --token "$BENCHCI_AGENT_TOKEN"
-```
-
-## Step 6 — Create the GitLab variables
-
-Add these variables in GitLab project settings:
-
-- `BENCHCI_AGENT_URL`
-- `BENCHCI_AGENT_TOKEN`
-
-Example values:
+In your GitLab project, open:
 
 ```text
-BENCHCI_AGENT_URL=http://192.168.1.50:8080
-BENCHCI_AGENT_TOKEN=secure-token
+Settings → CI/CD → Variables
 ```
 
-## Step 7 — Create `.gitlab-ci.yml`
-
-### Uploaded-bench example
-
-```yaml
-stages:
-  - hardware-test
-
-hardware-test:
-  stage: hardware-test
-  tags:
-    - benchci
-  script:
-    - benchci run --agent "$BENCHCI_AGENT_URL" --bench bench.yaml --suite suite.yaml --artifact build/firmware.elf --token "$BENCHCI_AGENT_TOKEN"
-  artifacts:
-    when: always
-    paths:
-      - benchci-results/
-```
-
-### Registered-bench example
-
-```yaml
-stages:
-  - hardware-test
-
-hardware-test:
-  stage: hardware-test
-  tags:
-    - benchci
-  script:
-    - benchci run --agent "$BENCHCI_AGENT_URL" --bench-id nucleo-uart --suite suite.yaml --artifact build/firmware.elf --token "$BENCHCI_AGENT_TOKEN"
-  artifacts:
-    when: always
-    paths:
-      - benchci-results/
-```
-
-## Step 8 — Push and inspect the job
-
-Push the pipeline and inspect the logs.
-
-Expected high-level flow:
-
-1. GitLab checks out the repository
-2. BenchCI logs in
-3. BenchCI submits a run to the Agent
-4. Agent queues and executes the run
-5. CLI polls run status
-6. CLI downloads the artifact ZIP
-7. GitLab uploads `benchci-results/`
-
-## What artifacts you get
-
-From GitLab, you can retrieve:
-
-- the downloaded Agent ZIP
-- any local BenchCI output under `benchci-results/`
-
-Inside the Agent ZIP you typically get:
-
-- `results.json`
-- `flash.log`
-- `gpio.log`
-- `transport-*.log`
-
-## Notes
-
-- the runner machine does not need direct hardware access for remote runs
-- the hardware machine must have the required flash tools and runtime dependencies
-- registered-bench mode is usually better for stable shared lab infrastructure
-
-
-## Cloud Mode from GitLab CI
-
-If you want GitLab CI to use backend scheduling instead of talking directly to a hardware Agent, use Cloud Mode.
-
-Create masked/protected GitLab variables:
+Add these variables:
 
 ```text
 BENCHCI_EMAIL=engineer@company.com
-BENCHCI_PASSWORD=********
+BENCHCI_PASSWORD=your-password
 BENCHCI_API_URL=https://api.benchci.dev
 BENCHCI_BENCH_ID=my-cloud-bench
 ```
 
-Example:
+Use masked/protected variables where appropriate.
+
+---
+
+## Step 2 — Add .gitlab-ci.yml
+
+Example pipeline:
 
 ```yaml
 stages:
+  - build
   - hardware-test
+
+build-firmware:
+  stage: build
+  image: ubuntu:24.04
+  script:
+    - apt-get update
+    - apt-get install -y make gcc-arm-none-eabi binutils-arm-none-eabi
+    - make
+    - mkdir -p build
+    - cp path/to/firmware.elf build/firmware.elf
+  artifacts:
+    paths:
+      - build/firmware.elf
 
 hardware-test:
   stage: hardware-test
-  tags:
-    - benchci
+  image: python:3.11
+  needs:
+    - job: build-firmware
+      artifacts: true
   script:
     - pip install --upgrade benchci
     - benchci login --email "$BENCHCI_EMAIL" --password "$BENCHCI_PASSWORD" --api-url "$BENCHCI_API_URL"
@@ -238,4 +144,128 @@ hardware-test:
       - benchci-results/
 ```
 
-Cloud Mode is recommended when the runner should not connect directly to the lab network.
+Update these paths for your project:
+
+```text
+path/to/firmware.elf
+suite.yaml
+```
+
+---
+
+## Step 3 — Push and inspect the pipeline
+
+After pushing, the expected flow is:
+
+1. GitLab builds your firmware
+2. GitLab passes the firmware artifact to the hardware-test job
+3. BenchCI logs in
+4. BenchCI schedules the run on the selected bench
+5. the bench flashes firmware and executes the test suite
+6. BenchCI downloads results into `benchci-results/`
+7. GitLab stores those results as job artifacts
+
+---
+
+## Results
+
+BenchCI writes results into:
+
+```text
+benchci-results/
+```
+
+Typical contents include:
+
+```text
+results.json
+flash.log
+transport-*.log
+gpio.log
+power.log
+```
+
+The exact logs depend on your bench and test suite.
+
+---
+
+## Direct Agent mode
+
+Use Direct Agent mode when your GitLab Runner can reach the hardware machine directly over the network.
+
+```text
+GitLab CI job
+    ↓
+BenchCI CLI
+    ↓
+BenchCI Agent on lab machine
+    ↓
+real hardware bench
+```
+
+### Agent variables
+
+Add:
+
+```text
+BENCHCI_AGENT_URL=http://192.168.1.50:8080
+BENCHCI_AGENT_TOKEN=secure-token
+```
+
+### Pipeline example
+
+```yaml
+stages:
+  - hardware-test
+
+hardware-test:
+  stage: hardware-test
+  image: python:3.11
+  script:
+    - pip install --upgrade benchci
+    - benchci run --agent "$BENCHCI_AGENT_URL" --bench bench.yaml --suite suite.yaml --artifact build/firmware.elf --token "$BENCHCI_AGENT_TOKEN" --verbose
+  artifacts:
+    when: always
+    paths:
+      - benchci-results/
+```
+
+---
+
+## Registered bench Agent mode
+
+If the Agent already has the bench registered, use `--bench-id` instead of uploading `bench.yaml` from CI.
+
+```yaml
+hardware-test:
+  stage: hardware-test
+  image: python:3.11
+  script:
+    - pip install --upgrade benchci
+    - benchci run --agent "$BENCHCI_AGENT_URL" --bench-id nucleo-uart --suite suite.yaml --artifact build/firmware.elf --token "$BENCHCI_AGENT_TOKEN" --verbose
+  artifacts:
+    when: always
+    paths:
+      - benchci-results/
+```
+
+This is usually better for stable shared lab infrastructure.
+
+---
+
+## Troubleshooting
+
+If the job fails:
+
+- confirm `BENCHCI_API_URL` is `https://api.benchci.dev`
+- confirm the GitLab variables are available to the job
+- confirm the bench ID is visible to your workspace
+- confirm the firmware artifact path exists
+- inspect `benchci-results/`
+- rerun with `--verbose`
+
+For Direct Agent mode:
+
+- confirm the runner can reach the Agent URL
+- confirm the Agent token matches
+- confirm the hardware machine can flash and test locally first

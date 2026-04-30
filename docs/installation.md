@@ -1,28 +1,31 @@
 # Installation
 
-BenchCI is distributed via PyPI and can be installed using pip.
+Install BenchCI on the machines that need to run the CLI:
 
-BenchCI access is tied to a BenchCI account and workspace.
+- your development machine
+- a hardware-connected lab machine
+- a CI runner
+- a self-hosted runner
+
+For local tests, the machine running BenchCI must be connected to the hardware.
+
+For Cloud Mode, CI only needs the CLI. The hardware-connected Agent executes the test near the device.
 
 ---
 
 ## Install BenchCI
 
-Install directly from PyPI:
-
 ```bash
 pip install benchci
 ```
 
-Verify the CLI is available:
+Verify the CLI:
 
 ```bash
 benchci --help
 ```
 
----
-
-## Upgrade BenchCI
+Upgrade:
 
 ```bash
 pip install --upgrade benchci
@@ -30,38 +33,33 @@ pip install --upgrade benchci
 
 ---
 
-## Create or access your workspace
-
-Use the BenchCI dashboard:
-
-```text
-https://app.benchci.dev
-```
-
-For early access customers, the BenchCI team activates paid workspace access manually after onboarding or invoicing.
-
----
-
 ## Log in
 
-Log in with your BenchCI email/password account:
+BenchCI access is tied to a BenchCI account and workspace.
 
 ```bash
 benchci login
 ```
 
-
-Check the stored session:
+Check your active account and workspace:
 
 ```bash
 benchci whoami
 ```
 
-Remove the session:
+Log out:
 
 ```bash
 benchci logout
 ```
+
+Create or access your workspace from:
+
+```text
+https://app.benchci.dev
+```
+
+For early access customers, BenchCI workspace activation and billing are currently handled manually.
 
 ---
 
@@ -73,19 +71,19 @@ Run diagnostics:
 benchci doctor
 ```
 
-You can also check a specific bench file:
+Check a specific bench file:
 
 ```bash
 benchci doctor --bench bench.yaml
 ```
 
-Check agent reachability:
+Check an Agent:
 
 ```bash
 benchci doctor --agent http://192.168.1.50:8080
 ```
 
-If the agent requires authentication:
+If the Agent requires authentication:
 
 ```bash
 benchci doctor --agent http://192.168.1.50:8080 --token "$BENCHCI_AGENT_TOKEN"
@@ -95,58 +93,47 @@ benchci doctor --agent http://192.168.1.50:8080 --token "$BENCHCI_AGENT_TOKEN"
 
 ## Install on a hardware-connected machine
 
-Install BenchCI on the machine that has direct access to hardware:
+This is the machine physically connected to the DUT, debugger, UART/CAN/Modbus adapters, GPIO lines, relays, or power control hardware.
 
 ```bash
 pip install benchci
 ```
 
-Start the Agent:
+For direct Agent mode:
 
 ```bash
 benchci agent serve
 ```
 
-To require authentication:
+To protect Agent endpoints:
 
 ```bash
 export BENCHCI_AGENT_TOKEN=secure-token
 benchci agent serve
 ```
 
+For Cloud Mode:
+
+```bash
+benchci agent cloud \
+  --backend https://api.benchci.dev \
+  --token YOUR_AGENT_TOKEN \
+  --bench bench.yaml \
+  --bench-id my-bench \
+  --agent-name "Lab Agent 01"
+```
+
 ---
 
-## Install on CI or runner machines
+## Install on CI runner machines
 
-A CI runner only needs the BenchCI CLI and network access to the Agent or the BenchCI backend. It does **not** need direct hardware access for remote runs.
+A CI runner usually does not need direct hardware access when using Cloud Mode.
 
 ```bash
 pip install benchci
 ```
 
-Example remote Agent run:
-
-```bash
-benchci run \
-  --agent "$BENCHCI_AGENT_URL" \
-  --bench bench.yaml \
-  --suite suite.yaml \
-  --artifact build/fw.elf \
-  --token "$BENCHCI_AGENT_TOKEN"
-```
-
-Example registered-bench remote run:
-
-```bash
-benchci run \
-  --agent "$BENCHCI_AGENT_URL" \
-  --bench-id my-bench \
-  --suite suite.yaml \
-  --artifact build/fw.elf \
-  --token "$BENCHCI_AGENT_TOKEN"
-```
-
-Example Cloud Mode run:
+Cloud Mode run:
 
 ```bash
 benchci login
@@ -157,33 +144,59 @@ benchci run --cloud \
   --artifact build/fw.elf
 ```
 
+Direct Agent run:
+
+```bash
+benchci run \
+  --agent "$BENCHCI_AGENT_URL" \
+  --bench bench.yaml \
+  --suite suite.yaml \
+  --artifact build/fw.elf \
+  --token "$BENCHCI_AGENT_TOKEN"
+```
+
+Registered-bench direct Agent run:
+
+```bash
+benchci run \
+  --agent "$BENCHCI_AGENT_URL" \
+  --bench-id my-bench \
+  --suite suite.yaml \
+  --artifact build/fw.elf \
+  --token "$BENCHCI_AGENT_TOKEN"
+```
+
 ---
 
 ## External tools
 
-BenchCI uses Python packages and, depending on your bench, external system tools.
+BenchCI is installed through Python, but your bench may require external system tools depending on what you automate.
 
-Common Python dependencies include:
+Common tools include:
 
-- `pydantic`
-- `pyyaml`
-- `typer`
-- `httpx`
-- `fastapi`
-- `uvicorn`
+- OpenOCD for many STM32 and ARM workflows
+- STM32CubeProgrammer for STM32 workflows
+- SEGGER J-Link tools for J-Link workflows
+- esptool for ESP32 workflows
+- Linux GPIO access through `/dev/gpiochipX`
+- CAN tools and SocketCAN configuration for CAN workflows
+- serial device permissions for UART workflows
 
-Transport and GPIO dependencies include:
+Example Ubuntu packages for a basic STM32/OpenOCD workflow:
 
-- `pyserial`
-- `pymodbus`
-- `python-can`
-- `gpiod` on Linux
+```bash
+sudo apt-get update
+sudo apt-get install -y openocd gcc-arm-none-eabi make
+```
 
-Flashing tools may include:
+For GPIO, make sure the user running BenchCI can access `/dev/gpiochipX`.
 
-- `openocd`
-- `STM32_Programmer_CLI`
-- `JLinkExe` or `JLink.exe`
-- `esptool.py`
+For serial, make sure the user can access `/dev/ttyUSBX` or `/dev/ttyACMX`.
 
-Use `benchci doctor` to verify what your current bench needs.
+---
+
+## Next step
+
+Continue with:
+
+[Quickstart](quickstart.md)

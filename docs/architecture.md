@@ -1,5 +1,9 @@
 # BenchCI Architecture
 
+Use this page to understand how CLI, Agent, backend, dashboard, workspaces, scheduling, and real hardware execution fit together.
+
+---
+
 BenchCI is a hardware validation platform for embedded systems. It combines a local execution engine with optional remote Agent execution, backend scheduling, workspace-aware access control, and dashboard visibility.
 
 ## Main components
@@ -39,7 +43,7 @@ https://app.benchci.dev
 
 ### Runner
 
-`run_local(...)` is the core execution engine. It:
+Runner is the core execution engine. It:
 
 - loads `bench.yaml` and `suite.yaml`
 - cross-validates the suite against the bench
@@ -259,7 +263,7 @@ BenchCI can currently be used in three practical ways:
 
 ### Direct local mode
 
-- CLI calls `run_local(...)` directly
+- CLI calls local runner directly
 - hardware is attached to the same machine
 - simplest development workflow
 

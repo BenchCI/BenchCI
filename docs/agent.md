@@ -1,38 +1,106 @@
 # BenchCI Agent
 
-BenchCI Agent runs on machines connected to real hardware. It exposes an HTTP API for remote execution, registered benches, run status, events, artifacts, and remote GPIO.
+BenchCI Agent runs on machines connected to real hardware.
 
-The Agent can also run in Cloud Mode, where it polls the BenchCI backend for assignments and reports results back to the backend.
+It is the bridge between CI/developers and the physical bench.
 
-## What the Agent does
+---
 
-The Agent can:
+## Do you need an Agent?
 
-- accept uploaded-bench runs
-- accept registered-bench runs
-- queue runs
-- enforce one active run per bench
-- execute `run_local(...)` near the hardware
-- expose structured run events
-- package and serve artifacts
-- provide remote GPIO endpoints for split deployments
-- connect to the BenchCI backend as a cloud execution worker
+For local testing:
 
-## Where the Agent fits
+```text
+developer machine -> hardware
+```
 
-The Agent is the remote execution layer in BenchCI.
+You do **not** need an Agent.
 
-It is used when you want:
+For remote or CI testing:
 
-- developer machines to stay separate from hardware machines
-- CI pipelines to trigger real hardware tests over the network
-- multiple reusable benches behind one machine
-- registered bench IDs instead of repeatedly uploading bench definitions
-- split deployments where a Linux machine exposes GPIO remotely
+```text
+CI/developer -> BenchCI Agent -> hardware
+```
 
-In the backend-controlled cloud path, the Agent also acts as the execution worker that polls the backend for assigned runs and uploads results after execution.
+You usually need an Agent.
 
-## Start the Agent
+For BenchCI Cloud:
+
+```text
+CI/developer -> BenchCI backend -> cloud-connected Agent -> hardware
+```
+
+You need a cloud-connected Agent.
+
+---
+
+## Recommended first path
+
+Before starting Agent mode, verify local execution on the hardware machine:
+
+```bash
+benchci run --bench bench.yaml --suite suite.yaml --artifact build/fw.elf
+```
+
+Do not move to Cloud Mode until local execution works.
+
+---
+
+## Cloud Agent quick start
+
+Cloud Agent mode is the recommended path for GitHub Actions, GitLab CI, remote developers, and shared hardware labs.
+
+### 1. Get an Agent token
+
+Agent tokens are created during workspace onboarding.
+
+Contact the BenchCI team or your workspace owner to receive a token.
+
+Keep Agent tokens out of source control and rotate them if leaked.
+
+### 2. Start the cloud-connected Agent
+
+```bash
+benchci agent cloud \
+  --backend https://api.benchci.dev \
+  --token YOUR_AGENT_TOKEN \
+  --bench bench.yaml \
+  --bench-id my-bench \
+  --agent-name "Lab Agent 01"
+```
+
+The Agent will:
+
+- register or sync the bench
+- publish capabilities
+- send heartbeats
+- poll for assignments
+- execute runs near the hardware
+- upload events and artifacts
+
+### 3. Verify the bench is visible
+
+From a developer machine or CI environment:
+
+```bash
+benchci benches list
+```
+
+You should see the bench ID and online/idle status.
+
+You can also verify it in the dashboard:
+
+```text
+https://app.benchci.dev
+```
+
+---
+
+## Direct Agent mode
+
+Direct Agent mode is useful when the client can reach the hardware machine over the network.
+
+Start the Agent:
 
 ```bash
 benchci agent serve
@@ -45,21 +113,76 @@ host: 0.0.0.0
 port: 8080
 ```
 
-## Authentication
+Run against the Agent:
 
-If `BENCHCI_AGENT_TOKEN` is set, the Agent requires `Authorization: Bearer <token>` for protected endpoints.
+```bash
+benchci run \
+  --agent http://agent-host:8080 \
+  --bench bench.yaml \
+  --suite suite.yaml \
+  --artifact build/fw.elf
+```
 
-Example:
+With authentication:
 
 ```bash
 export BENCHCI_AGENT_TOKEN=secure-token
 benchci agent serve
 ```
 
+Then run:
+
+```bash
+benchci run \
+  --agent http://agent-host:8080 \
+  --bench bench.yaml \
+  --suite suite.yaml \
+  --artifact build/fw.elf \
+  --token "$BENCHCI_AGENT_TOKEN"
+```
+
+---
+
+## What the Agent does
+
+The Agent can:
+
+- accept uploaded-bench runs
+- accept registered-bench runs
+- queue runs
+- enforce one active run per bench
+- execute local run near the hardware
+- expose structured run events
+- package and serve artifacts
+- provide remote GPIO endpoints for split deployments
+- connect to the BenchCI backend as a cloud execution worker
+
+---
+
+## Where the Agent fits
+
+Use the Agent when you want:
+
+- developer machines to stay separate from hardware machines
+- CI pipelines to trigger real hardware tests
+- multiple reusable benches behind one machine
+- registered bench IDs instead of repeatedly uploading bench definitions
+- shared hardware access
+- split deployments where a Linux machine exposes GPIO remotely
+
+---
+
 ## Health check
 
 ```bash
 curl http://localhost:8080/health
+```
+
+If auth is enabled:
+
+```bash
+curl -H "Authorization: Bearer $BENCHCI_AGENT_TOKEN" \
+  http://localhost:8080/health
 ```
 
 The health response includes information such as:
@@ -72,6 +195,8 @@ The health response includes information such as:
 - whether auth is enabled
 - number of active GPIO sessions
 - whether registered bench mode is enabled
+
+---
 
 ## Registered benches
 
@@ -94,7 +219,9 @@ benches:
     tags: [modbus, industrial]
 ```
 
-When `agent.yaml` is present, the Agent loads the file, resolves each `bench_file`, and exposes those benches through the API.
+When `agent.yaml` is present, the Agent loads each `bench_file` and exposes those benches through the API.
+
+---
 
 ## Bench endpoints
 
@@ -127,6 +254,8 @@ Bench summaries include:
   - flash backends
   - node count
 
+---
+
 ## Run submission modes
 
 ### Uploaded-bench mode
@@ -139,19 +268,21 @@ The client uploads:
 - `skip_flash`
 - optional `verbose`
 
-This is backward-compatible and does not require a pre-registered bench.
+This mode is useful for early testing and does not require a pre-registered bench.
 
 ### Registered-bench mode
 
-The client submits JSON containing:
+The client submits:
 
 - `bench_id`
-- `suite_yaml`
-- optional uploaded artifact payload
+- `suite.yaml`
+- optional artifact file
 - `skip_flash`
 - optional `verbose`
 
-This mode reuses a bench already known by the Agent and is the preferred model for shared hardware infrastructure.
+This mode reuses a bench already known by the Agent and is preferred for shared labs.
+
+---
 
 ## Run endpoints
 
@@ -185,32 +316,25 @@ Download artifacts ZIP:
 GET /v1/runs/{run_id}/artifacts.zip
 ```
 
-## Cloud Agent mode
+---
 
-In Cloud Agent mode, the Agent does not wait for direct run submissions from a user or CI runner. Instead, it polls the BenchCI backend.
+## Cloud Agent lifecycle
 
-Example:
+In Cloud Agent mode, the Agent polls the BenchCI backend.
 
-```bash
-benchci agent cloud \
-  --backend https://api.benchci.dev \
-  --token YOUR_AGENT_TOKEN \
-  --bench bench.yaml \
-  --bench-id my-bench \
-  --agent-name "Lab Agent 01"
-```
+The loop is:
 
-The cloud Agent loop:
+1. send heartbeat
+2. sync bench summary/capabilities
+3. poll for the next assignment
+4. execute the assigned suite with local run
+5. send structured events
+6. upload artifacts
+7. report completion
 
-1. sends heartbeat
-2. syncs bench summary/capabilities
-3. polls for the next assignment
-4. executes the assigned suite with `run_local(...)`
-5. sends structured events
-6. uploads artifacts
-7. reports completion
+The lab machine does not need a public inbound port. It makes outbound requests to BenchCI.
 
-The Agent token is created during workspace/customer onboarding by the BenchCI owner/admin process.
+---
 
 ## Run lifecycle
 
@@ -226,83 +350,18 @@ Agent runs move through these states:
 Each run stores:
 
 - current status
-- mode (`uploaded` or `registered`)
+- mode (`uploaded`, `registered`, or cloud assignment)
 - optional `bench_id`
 - `exit_code`
-- timestamps
-- current test and step
-- structured events
+- events
+- artifacts
 
-## Verbose runs
+---
 
-BenchCI supports verbose execution mode for both uploaded-bench and registered-bench runs.
+## Security notes
 
-When verbose mode is enabled:
-
-- the runner produces richer step-level diagnostics
-- failure messages include additional context
-- more detailed log information may appear in artifacts
-- event payloads may include richer execution details
-- run behavior stays the same; only observability changes
-
-Verbose mode is controlled by the CLI using `--verbose` and is propagated through the Agent to the underlying `run_local(...)` execution.
-
-Notes:
-
-- verbose output is primarily visible in artifacts and structured events
-- the Agent does not stream raw verbose terminal output directly to clients
-- the best place to inspect verbose remote diagnostics is the downloaded artifact ZIP
-
-## Scheduling model
-
-The Agent keeps:
-
-- one queue for submitted runs
-- one lock per registered bench
-
-This means:
-
-- a bench can only run one job at a time
-- different benches can still be queued independently
-- uploaded-bench runs are serialized through a synthetic uploaded-bench lock
-
-## Events
-
-The Agent stores structured events emitted by the runner, such as:
-
-- `run.started`
-- `test.started`
-- `step.started`
-- `step.finished`
-- `step.failed`
-- `run.finished`
-- `run.failed`
-
-These events make it possible to build richer CLI or UI progress views.
-
-## Remote GPIO
-
-The Agent also exposes remote GPIO endpoints used by `remote_gpio` benches:
-
-- `POST /v1/gpio/session/start`
-- `POST /v1/gpio/session/stop`
-- `POST /v1/gpio/set`
-- `POST /v1/gpio/get`
-- `POST /v1/gpio/wait_value`
-- `POST /v1/gpio/wait_edge`
-
-This allows one Linux machine to control GPIO on behalf of a runner or another Agent-accessible workflow.
-
-## Artifacts
-
-Runs produce artifacts such as:
-
-- `results.json`
-- per-node transport logs
-- `flash.log`
-- `gpio.log`
-- power logs when power resources are used
-
-Verbose runs may produce more detailed artifact content for debugging and failure analysis.
-
-The Agent packages the run results directory as a ZIP and serves it through the artifacts endpoint, or uploads it to the backend in Cloud Agent mode.
+- Keep Agent tokens out of source control.
+- Use one token per lab Agent or customer workspace when possible.
+- Rotate leaked tokens.
+- Prefer Cloud Agent mode when you do not want inbound network access to lab machines.
+- Restrict direct Agent access to trusted networks.

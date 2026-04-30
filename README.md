@@ -8,6 +8,9 @@
 [![License](https://img.shields.io/badge/license-commercial-lightgrey)]()
 
 > **Continuous Integration for real embedded hardware.**
+> 
+> BenchCI is a hardware CI tool for embedded systems.
+> Developed by BenchCI Labs.
 >
 > Build firmware in CI, flash a real device, run hardware tests, and get logs/results back automatically.
 

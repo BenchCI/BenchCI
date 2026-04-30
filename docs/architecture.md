@@ -80,7 +80,7 @@ The BenchCI backend handles:
 Current hosted backend:
 
 ```text
-https://benchci-backend.fly.dev
+https://api.benchci.dev
 ```
 
 ## High-level flow

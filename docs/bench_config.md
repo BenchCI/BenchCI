@@ -382,7 +382,7 @@ Example cloud Agent startup:
 
 ```bash
 benchci agent cloud \
-  --backend https://benchci-backend.fly.dev \
+  --backend https://api.benchci.dev \
   --token YOUR_AGENT_TOKEN \
   --bench bench.yaml \
   --bench-id my-bench \

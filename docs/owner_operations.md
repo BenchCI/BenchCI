@@ -21,7 +21,7 @@ BenchCI currently uses manual onboarding and monthly invoicing rather than self-
 Current hosted backend:
 
 ```text
-https://benchci-backend.fly.dev
+https://api.benchci.dev
 ```
 
 ## Dashboard URL

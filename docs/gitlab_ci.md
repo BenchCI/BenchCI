@@ -214,7 +214,7 @@ Create masked/protected GitLab variables:
 ```text
 BENCHCI_EMAIL=engineer@company.com
 BENCHCI_PASSWORD=********
-BENCHCI_API_URL=https://benchci-backend.fly.dev
+BENCHCI_API_URL=https://api.benchci.dev
 BENCHCI_BENCH_ID=my-cloud-bench
 ```
 

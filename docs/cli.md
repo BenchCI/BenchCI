@@ -258,7 +258,7 @@ The Agent is used for remote execution and remote GPIO services.
 Start the cloud-connected Agent loop on the current machine.
 
 ```bash
-benchci agent cloud   --backend https://benchci-backend.fly.dev   --token YOUR_AGENT_TOKEN   --bench bench.yaml
+benchci agent cloud   --backend https://api.benchci.dev   --token YOUR_AGENT_TOKEN   --bench bench.yaml
 ```
 
 Optional cloud Agent fields include:

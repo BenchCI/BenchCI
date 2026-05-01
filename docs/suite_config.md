@@ -89,6 +89,64 @@ tests:
           within_ms: 2000
 ```
 
+## Optional traceability metadata
+
+Traceability fields are optional. Keep simple suites simple. Add these fields when a test should be connected to requirements, test cases, risks, releases, or evidence reports.
+
+Suite-level metadata can include:
+
+```yaml
+suite:
+  name: stm32_smoke
+  description: Basic real-hardware smoke test
+  version: "1.0.0"
+  release_id: "fw-0.3.5"
+  requirement_ids:
+    - REQ-BOOT-001
+  risk_ids:
+    - RISK-BOOT-001
+  tags:
+    - smoke
+    - hardware-ci
+```
+
+Each test can include:
+
+```yaml
+tests:
+  - name: boot_ok
+    test_case_id: TC-BOOT-001
+    requirement_ids:
+      - REQ-BOOT-001
+    risk_ids:
+      - RISK-BOOT-001
+    tags:
+      - boot
+      - uart
+    steps:
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "BOOT OK"
+          within_ms: 3000
+```
+
+These fields are copied into `results.json`, `evidence.json`, and `evidence.html` so a run can show which requirements, test cases, and risks were covered.
+
+A useful mental model is:
+
+```text
+Risk -> Requirement -> Test case -> BenchCI run evidence
+```
+
+Recommended simple ID format:
+
+```text
+REQ-BOOT-001
+TC-BOOT-001
+RISK-BOOT-001
+```
+
 ## Step types
 
 BenchCI currently supports these step types:

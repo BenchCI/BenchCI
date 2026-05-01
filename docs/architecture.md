@@ -114,7 +114,7 @@ bench.yaml + suite.yaml
         ↓
  execute steps
         ↓
-   results.json + logs
+   results.json + evidence.json + evidence.html + logs
 ```
 
 ## Remote execution flow
@@ -156,6 +156,36 @@ Developer / CI
       ↓
 Backend + Dashboard + CLI
 ```
+
+## Evidence and traceability flow
+
+BenchCI now treats every run as an evidence-producing operation.
+
+```text
+bench.yaml + suite.yaml + firmware artifact
+        ↓
+local runner / Agent / Cloud Agent
+        ↓
+results.json + evidence.json + evidence.html + logs
+        ↓
+CLI artifact download + backend indexing + dashboard visibility
+```
+
+The evidence package can include:
+
+- firmware SHA256
+- Git commit, branch, remote, and dirty-state metadata
+- CI provider and job URL
+- bench config SHA256
+- suite SHA256
+- input snapshots of `bench.yaml` and `suite.yaml`
+- requirement IDs
+- test case IDs
+- risk IDs
+- structured failure explanations
+- artifact file list
+
+The backend indexes key fields for Cloud runs so the dashboard can show evidence and traceability without downloading the full ZIP.
 
 ## Workspace model
 
@@ -278,7 +308,7 @@ BenchCI can currently be used in three practical ways:
 - CLI talks to the BenchCI backend
 - backend schedules work to a cloud-connected Agent
 - artifacts and events return through the backend path
-- dashboard provides visibility
+- dashboard provides visibility into status, failures, artifacts, evidence, and traceability
 
 This lets the same bench and suite definitions scale from:
 

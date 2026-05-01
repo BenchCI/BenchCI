@@ -1,0 +1,61 @@
+version: "1"
+suite:
+  name: "local-gpio-reset-and-ready"
+  description: "Advanced example: hold the DUT in reset, release it, verify ready state, and observe an interrupt edge."
+  version: "1.0.0"
+  requirement_ids:
+    - REQ-RESET-001
+    - REQ-READY-001
+    - REQ-IRQ-001
+  risk_ids:
+    - RISK-BRICKED-BOOT-001
+    - RISK-MISSED-INTERRUPT-001
+  tags:
+    - gpio
+    - reset
+    - evidence
+tests:
+  - name: "manual reset sequence reaches ready"
+    test_case_id: TC-GPIO-RESET-READY-001
+    requirement_ids:
+      - REQ-RESET-001
+      - REQ-READY-001
+    risk_ids:
+      - RISK-BRICKED-BOOT-001
+    tags: ["reset", "ready-pin"]
+    steps:
+      - gpio_set:
+          node: dut
+          line: boot0
+          value: false
+      - gpio_set:
+          node: dut
+          line: reset_n
+          value: false
+      - sleep_ms: 100
+      - gpio_set:
+          node: dut
+          line: reset_n
+          value: true
+      - gpio_expect:
+          node: dut
+          line: ready
+          value: true
+          within_ms: 3000
+      - gpio_get:
+          node: dut
+          line: ready
+          expect: true
+  - name: "interrupt edge is observed"
+    test_case_id: TC-GPIO-IRQ-001
+    requirement_ids:
+      - REQ-IRQ-001
+    risk_ids:
+      - RISK-MISSED-INTERRUPT-001
+    tags: ["interrupt", "edge"]
+    steps:
+      - gpio_wait_edge:
+          node: dut
+          line: irq
+          edge: rising
+          within_ms: 2000

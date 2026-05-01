@@ -49,6 +49,25 @@ benchci whoami
 
 ---
 
+## Before writing YAML: inspect your machine
+
+Run doctor first so you know which ports, USB devices, tools, and GPIO chips BenchCI can see:
+
+```bash
+benchci doctor
+benchci doctor --ports
+benchci doctor --usb
+benchci doctor --tools
+```
+
+After creating `bench.yaml`, cross-check it against the current machine:
+
+```bash
+benchci doctor --bench bench.yaml
+```
+
+This is especially useful for finding the correct UART port, checking whether OpenOCD/J-Link/esptool is installed, and confirming GPIO device paths such as `/dev/gpiochip0`.
+
 ## Step 1 — Create `bench.yaml`
 
 `bench.yaml` describes the physical hardware.
@@ -152,6 +171,41 @@ This suite checks that:
 
 ---
 
+## Optional: add traceability
+
+For a first run, a simple suite is enough. When you want evidence reports to show requirement or risk coverage, add optional traceability fields:
+
+```yaml
+suite:
+  name: firmware_smoke
+  description: Flash firmware and validate boot logs
+  requirement_ids:
+    - REQ-BOOT-001
+  risk_ids:
+    - RISK-BOOT-001
+  tags:
+    - smoke
+
+tests:
+  - name: boot_ok
+    test_case_id: TC-BOOT-001
+    requirement_ids:
+      - REQ-BOOT-001
+    risk_ids:
+      - RISK-BOOT-001
+    tags:
+      - boot
+      - uart
+    steps:
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "[BOOT] OK"
+          within_ms: 3000
+```
+
+Traceability fields are optional. Use them when you want the run to support release, QA, or compliance evidence workflows.
+
 ## Step 3 — Validate configuration
 
 Validate without touching hardware:
@@ -195,6 +249,12 @@ Typical structure:
 benchci-results/
 └── 20260328-142200/
     ├── results.json
+    ├── evidence.json
+    ├── evidence.html
+    ├── metadata.json
+    ├── inputs/
+    │   ├── bench.yaml
+    │   └── suite.yaml
     └── nodes/
         └── dut/
             ├── flash.log
@@ -252,3 +312,15 @@ within_ms: 5000
 Once local execution works, move to the end-to-end CI flow:
 
 [End-to-End Example](end_to_end_example.md)
+
+## Evidence outputs
+
+BenchCI now writes both machine-readable and human-readable evidence:
+
+- `results.json` — execution summary, test results, structured failures, and per-test traceability
+- `evidence.json` — firmware hash, Git/CI metadata, bench/suite hashes, traceability, and artifact list
+- `evidence.html` — human-readable evidence report
+- `metadata.json` — supporting run metadata
+- `inputs/bench.yaml` and `inputs/suite.yaml` — snapshots of the exact inputs used
+
+Open `evidence.html` after the run when you want a report that is easier to share with a teammate, QA reviewer, or release owner.

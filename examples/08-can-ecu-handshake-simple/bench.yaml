@@ -1,0 +1,28 @@
+version: "1"
+
+bench:
+  name: "can-ecu-handshake-bench"
+  description: "Simple bench for validating request/response behavior on a classic CAN bus. Replace can0/bitrate for your setup."
+
+defaults:
+  node: ecu
+  timeouts:
+    within_ms: 1000
+
+artifacts:
+  root_dir: "benchci-results"
+  per_node_dirs: true
+
+nodes:
+  ecu:
+    kind: ecu
+    role: primary
+    tags: ["can", "socketcan"]
+    transports:
+      canbus:
+        backend: can
+        # Linux SocketCAN interface. Bring it up before running, for example:
+        #   sudo ip link set can0 up type can bitrate 500000
+        interface: "can0"
+        bitrate: 500000
+        timeout_ms: 500

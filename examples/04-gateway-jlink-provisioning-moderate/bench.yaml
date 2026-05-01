@@ -1,0 +1,31 @@
+version: "1"
+bench:
+  name: "gateway-jlink-provisioning-bench"
+  description: "Provision a gateway board flashed via SEGGER J-Link and verify UART boot output."
+defaults:
+  node: gateway
+  timeouts:
+    within_ms: 1500
+artifacts:
+  root_dir: "benchci-results"
+  per_node_dirs: true
+nodes:
+  gateway:
+    kind: gateway
+    role: primary
+    tags: ["jlink", "uart", "gateway"]
+    flash:
+      backend: jlink
+      device: "STM32F407VG"        # Replace with your MCU part number.
+      interface: "SWD"
+      speed_khz: 4000
+      serial: "801234567"          # Optional: remove/change if only one J-Link is connected.
+      artifact: "build/gateway.elf"
+    reset:
+      method: jlink
+    transports:
+      console:
+        backend: uart
+        port: "/dev/ttyUSB3"       # Replace with the board console port.
+        baud: 115200
+        timeout_ms: 100

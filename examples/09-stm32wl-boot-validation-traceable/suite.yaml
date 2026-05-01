@@ -1,0 +1,79 @@
+version: "1"
+
+suite:
+  name: "device-boot-validation"
+  description: "Validate that firmware boots, exposes version info, and responds to a simple command. Demonstrates requirement/test/risk traceability."
+  version: "1.0.0"
+  release_id: "demo-fw-local"
+  requirement_ids:
+    - REQ-BOOT-001
+    - REQ-VERSION-001
+    - REQ-COMMAND-001
+  risk_ids:
+    - RISK-BOOT-001
+    - RISK-DIAGNOSTICS-001
+  tags:
+    - stm32wl
+    - smoke
+    - traceability
+
+tests:
+  - name: "boot_banner_is_printed"
+    test_case_id: TC-BOOT-001
+    requirement_ids:
+      - REQ-BOOT-001
+    risk_ids:
+      - RISK-BOOT-001
+    tags:
+      - boot
+      - uart
+    steps:
+      - flash:
+          node: dut
+      - reset:
+          node: dut
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "[BCI] BOOT_OK"
+          within_ms: 4000
+
+  - name: "firmware_version_is_reported"
+    test_case_id: TC-VERSION-001
+    requirement_ids:
+      - REQ-VERSION-001
+    risk_ids:
+      - RISK-DIAGNOSTICS-001
+    tags:
+      - diagnostics
+      - uart
+    steps:
+      - send_uart:
+          node: dut
+          transport: console
+          data: "GET_VERSION\n"
+      - expect_uart:
+          node: dut
+          transport: console
+          regex: "\\[BCI\\] FW:.* GIT:.*"
+          within_ms: 1000
+
+  - name: "ping_command_round_trip"
+    test_case_id: TC-COMMAND-001
+    requirement_ids:
+      - REQ-COMMAND-001
+    risk_ids:
+      - RISK-DIAGNOSTICS-001
+    tags:
+      - command
+      - uart
+    steps:
+      - send_uart:
+          node: dut
+          transport: console
+          data: "PING\n"
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "[BCI] PONG"
+          within_ms: 1000

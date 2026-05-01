@@ -1,351 +1,575 @@
 # BenchCI Examples
 
-Use these examples as starting templates for real embedded workflows such as boot validation, GPIO reset, Modbus, CAN, ESP32, J-Link, and multi-node testing.
+Use these examples as starting templates for real embedded workflows such as boot validation, GPIO reset, Modbus, CAN, ESP32, J-Link, remote GPIO, and multi-node testing.
 
 ---
 
 This page contains **realistic example scenarios** showing how to use BenchCI in different setups.
 
-Each example includes:
+Each example folder includes:
+
 - `bench.yaml` → hardware configuration
 - `suite.yaml` → test logic
 
+Some examples are intentionally simple. Others show optional traceability fields used by Evidence Reports, such as requirement IDs, test case IDs, risk IDs, release IDs, and tags.
+
+---
 
 ## Start here
 
-If you are new to BenchCI, begin with:
+If you are new to BenchCI, begin with one of the simple examples:
 
-- `examples/device_boot_validation/`
+- `examples/02-modbus-rtu-plc-simple/`
+- `examples/06-multi-node-uart-simple/`
+- `examples/08-can-ecu-handshake-simple/`
 
-That example gives you the simplest useful path: flash firmware, read UART output, and validate boot behavior.
+If you want to see Evidence Reports and traceability metadata, start with:
 
----
+- `examples/01-esp32-esptool-uart-traceable/`
+- `examples/09-stm32wl-boot-validation-traceable/`
 
-
-These are not artificial “all-in-one” examples — they reflect **real-world use cases**.
-
----
-
-## 📦 Example Scenarios
+These examples are templates. You must adapt ports, IP addresses, GPIO lines, firmware paths, expected responses, and flashing tool settings for your hardware.
 
 ---
 
-### 1. Device Boot Validation
+## Example difficulty levels
 
-**Folder:** `examples/device_boot_validation/`
+Not every example needs traceability metadata. Public examples are intentionally mixed:
 
-#### Use Case
+- **Simple examples** teach the basic BenchCI model with minimal YAML.
+- **Moderate examples** include more realistic hardware resources, flashing, power, or reset flows.
+- **Traceability examples** show requirement IDs, test case IDs, risk IDs, release IDs, and tags for Evidence Reports.
 
-Validate that firmware:
-- boots correctly
-- prints expected logs
-- responds to commands over UART
+Start simple, then add traceability when a run should support QA, release, or compliance evidence.
+
+---
+
+## Current public example set
+
+```text
+examples/
+├── 01-esp32-esptool-uart-traceable/
+│   ├── bench.yaml
+│   └── suite.yaml
+├── 02-modbus-rtu-plc-simple/
+│   ├── bench.yaml
+│   └── suite.yaml
+├── 03-modbus-tcp-gateway-traceable/
+│   ├── bench.yaml
+│   └── suite.yaml
+├── 04-gateway-jlink-provisioning-moderate/
+│   ├── bench.yaml
+│   └── suite.yaml
+├── 05-local-gpio-reset-ready-advanced/
+│   ├── bench.yaml
+│   └── suite.yaml
+├── 06-multi-node-uart-simple/
+│   ├── bench.yaml
+│   └── suite.yaml
+├── 07-remote-gpio-power-cycle-moderate/
+│   ├── bench.yaml
+│   └── suite.yaml
+├── 08-can-ecu-handshake-simple/
+│   ├── bench.yaml
+│   └── suite.yaml
+└── 09-stm32wl-boot-validation-traceable/
+    ├── bench.yaml
+    └── suite.yaml
+```
+
+---
+
+## Example scenarios
+
+### 1. ESP32 esptool UART Traceable
+
+**Folder:** `examples/01-esp32-esptool-uart-traceable/`
+
+#### Use case
+
+Flash an ESP32 firmware image with `esptool`, then validate boot output over UART.
 
 #### Covers
 
-- OpenOCD flashing
+- `esptool` flashing
 - UART transport
-- `flash`, `reset`, `send_uart`, `expect_uart`
+- `flash`
+- `expect_uart`
+- Evidence Report traceability fields
+
+#### Traceability level
+
+Traceable.
+
+This example is useful for showing:
+
+- `requirement_ids`
+- `test_case_id`
+- `risk_ids`
+- `release_id`
+- tags
+- firmware/source evidence
 
 #### When to use
 
-- firmware smoke tests
-- CI validation after build
-- basic bring-up
+- ESP32 / ESP-IDF workflows
+- IoT firmware smoke tests
+- demos showing Evidence Reports
 
 ---
 
-### 2. Local GPIO Reset & Ready Monitoring
+### 2. Modbus RTU PLC Simple
 
-**Folder:** `examples/local_gpio_reset_and_ready/`
+**Folder:** `examples/02-modbus-rtu-plc-simple/`
 
-#### Use Case
+#### Use case
 
-Control reset lines and verify device readiness using Linux GPIO.
+Validate a PLC or RS-485 device using simple Modbus RTU operations.
+
+#### Covers
+
+- Modbus RTU transport
+- `modbus_read_holding_registers`
+- `modbus_write_single_register`
+- simple suite structure
+
+#### Traceability level
+
+Simple.
+
+This example intentionally avoids requirement/risk/test-case metadata so new users can focus on Modbus basics.
+
+#### When to use
+
+- industrial devices
+- RS-485 bring-up
+- Modbus smoke tests
+- first-time BenchCI users
+
+---
+
+### 3. Modbus TCP Gateway Traceable
+
+**Folder:** `examples/03-modbus-tcp-gateway-traceable/`
+
+#### Use case
+
+Validate an Ethernet-connected industrial gateway over Modbus TCP.
+
+#### Covers
+
+- Modbus TCP transport
+- IP-based device access
+- register validation
+- Evidence Report traceability fields
+
+#### Traceability level
+
+Traceable.
+
+This example demonstrates how networked device tests can be connected to requirements, risks, and release evidence.
+
+#### When to use
+
+- gateways
+- PLC-over-Ethernet validation
+- QA/release evidence for field communication
+
+---
+
+### 4. Gateway J-Link Provisioning Moderate
+
+**Folder:** `examples/04-gateway-jlink-provisioning-moderate/`
+
+#### Use case
+
+Provision or flash a gateway device using SEGGER J-Link, then verify basic startup behavior.
+
+#### Covers
+
+- `jlink` flash backend
+- UART validation
+- moderate production-style flow
+
+#### Traceability level
+
+Moderate.
+
+This example is more realistic than a minimal smoke test but does not need to show every Evidence Report field.
+
+#### When to use
+
+- production flashing
+- SEGGER-based lab setups
+- gateway firmware validation
+
+---
+
+### 5. Local GPIO Reset Ready Advanced
+
+**Folder:** `examples/05-local-gpio-reset-ready-advanced/`
+
+#### Use case
+
+Control reset lines and observe ready/interrupt signals using Linux GPIO on the same hardware-connected machine.
 
 #### Covers
 
 - `local_gpio`
-- `gpio_set`, `gpio_expect`, `gpio_wait_edge`
-- manual reset sequencing
+- GPIO output control
+- GPIO input expectations
+- `gpio_set`
+- `gpio_expect`
+- `gpio_wait_edge`
+- advanced reset/ready sequencing
+- Evidence Report traceability fields
+
+#### Traceability level
+
+Advanced / traceable.
+
+This example is useful for showing how hardware control signals can become part of release evidence.
 
 #### When to use
 
 - hardware bring-up
 - boards without reliable debugger reset
-- interrupt validation
+- reset/ready/interrupt validation
+- Raspberry Pi based benches
 
 ---
 
-### 3. Remote GPIO Power Cycling
+### 6. Multi-Node UART Simple
 
-**Folder:** `examples/remote_gpio_power_cycle/`
+**Folder:** `examples/06-multi-node-uart-simple/`
 
-#### Use Case
+#### Use case
 
-Control power and signals from a **different machine** via Agent.
-
-#### Covers
-
-- `remote_gpio`
-- distributed setups
-- power cycling DUT
-
-#### When to use
-
-- CI runner ≠ hardware machine
-- remote labs
-- shared hardware infrastructure
-
----
-
-### 4. Modbus RTU PLC Validation
-
-**Folder:** `examples/modbus_rtu_plc_validation/`
-
-#### Use Case
-
-Validate a PLC or RS-485 device.
-
-#### Covers
-
-- Modbus RTU transport
-- register + coil operations
-
-#### When to use
-
-- industrial devices
-- embedded fieldbus testing
-
----
-
-### 5. Modbus TCP Gateway Validation
-
-**Folder:** `examples/modbus_tcp_gateway_validation/`
-
-#### Use Case
-
-Test Ethernet-connected industrial devices.
-
-#### Covers
-
-- Modbus TCP
-- network-based communication
-
-#### When to use
-
-- gateways
-- PLC over Ethernet
-- integration tests
-
----
-
-### 6. CAN ECU Handshake
-
-**Folder:** `examples/can_ecu_handshake/`
-
-#### Use Case
-
-Validate request/response behavior on CAN bus.
-
-#### Covers
-
-- CAN transport
-- `send_can`, `expect_can`
-
-#### When to use
-
-- automotive ECUs
-- multi-node embedded systems
-
----
-
-### 7. CubeProgrammer Helper Board
-
-**Folder:** `examples/helper_board_cubeprog/`
-
-#### Use Case
-
-Flash STM32 device using CubeProgrammer.
-
-#### Covers
-
-- `cubeprog` backend
-- UART validation
-
-#### When to use
-
-- STM32 production workflows
-- environments without OpenOCD
-
----
-
-### 8. J-Link Gateway Provisioning
-
-**Folder:** `examples/gateway_jlink_provisioning/`
-
-#### Use Case
-
-Provision firmware using SEGGER J-Link.
-
-#### Covers
-
-- `jlink` backend
-- high-speed flashing
-
-#### When to use
-
-- production flashing
-- Segger-based setups
-
----
-
-### 9. ESP32 esptool Workflow
-
-**Folder:** `examples/esp32_esptool_wifi_probe/`
-
-#### Use Case
-
-Flash ESP32 firmware and validate startup.
-
-#### Covers
-
-- `esptool` backend
-- UART validation
-
-#### When to use
-
-- ESP32 / ESP-IDF projects
-- IoT devices
-
----
-
-### 10. Mock GPIO Simulation
-
-**Folder:** `examples/mock_gpio_simulation/`
-
-#### Use Case
-
-Test logic without real hardware.
-
-#### Covers
-
-- `mock_gpio`
-- GPIO logic testing
-
-#### When to use
-
-- development without hardware
-- CI pipelines without devices
-
----
-
-### 11. Multi-Node System Test
-
-**Folder:** `examples/multi_node_system_smoke/`
-
-#### Use Case
-
-Coordinate multiple devices in one test.
+Coordinate two UART-connected nodes in a simple system-level test.
 
 #### Covers
 
 - multiple nodes
+- multiple UART transports
 - cross-device interaction
+- simple suite structure
+
+#### Traceability level
+
+Simple.
+
+This example intentionally keeps traceability metadata out so users can focus on the multi-node model.
 
 #### When to use
 
-- system-level testing
 - DUT + controller setups
+- board-to-board smoke tests
+- simple system-level validation
 
 ---
 
-## 🧠 How to Use These Examples
+### 7. Remote GPIO Power Cycle Moderate
+
+**Folder:** `examples/07-remote-gpio-power-cycle-moderate/`
+
+#### Use case
+
+Control reset, power, or ready signals through a remote GPIO service rather than local `/dev/gpiochipX` access.
+
+#### Covers
+
+- `remote_gpio`
+- split deployments
+- remote GPIO host/port configuration
+- token-based remote GPIO access
+- power/reset style workflows
+
+#### Traceability level
+
+Moderate.
+
+This example focuses on the distributed hardware control pattern.
+
+#### Important note
+
+A real `remote_gpio` example should include remote connection fields such as:
+
+```yaml
+backend: remote_gpio
+host: 192.168.1.60
+port: 8090
+token_env: BENCHCI_REMOTE_GPIO_TOKEN
+```
+
+A `local_gpio` example does **not** need an IP address because it runs on the same Linux machine as `/dev/gpiochipX`.
+
+#### When to use
+
+- CI runner is not the hardware GPIO machine
+- remote labs
+- shared hardware infrastructure
+- Raspberry Pi GPIO service controlling another bench
+
+---
+
+### 8. CAN ECU Handshake Simple
+
+**Folder:** `examples/08-can-ecu-handshake-simple/`
+
+#### Use case
+
+Validate request/response behavior on a CAN bus.
+
+#### Covers
+
+- CAN transport
+- SocketCAN interface
+- `send_can`
+- `expect_can`
+- simple ECU handshake
+
+#### Traceability level
+
+Simple.
+
+This example avoids traceability metadata so users can focus on CAN setup and frame validation.
+
+#### When to use
+
+- automotive ECUs
+- CAN-connected embedded devices
+- bus-level smoke tests
+
+---
+
+### 9. STM32WL Boot Validation Traceable
+
+**Folder:** `examples/09-stm32wl-boot-validation-traceable/`
+
+#### Use case
+
+Flash an STM32WL target and validate that the firmware boots and prints expected UART output.
+
+#### Covers
+
+- OpenOCD flashing
+- ST-Link / SWD style workflow
+- UART boot validation
+- Evidence Report traceability fields
+
+#### Traceability level
+
+Traceable.
+
+This is a good example for showing how a standard firmware boot test can become structured release evidence.
+
+#### When to use
+
+- STM32 / NUCLEO validation
+- real-hardware CI demos
+- QA/release smoke tests
+- Evidence Report demos
+
+---
+
+## How to use these examples
 
 1. Copy an example folder:
 
-cp -r examples/device_boot_validation my-test
+```bash
+cp -r examples/09-stm32wl-boot-validation-traceable my-test
 cd my-test
+```
 
 2. Adjust hardware-specific values:
-- serial ports (e.g. `/dev/ttyUSB0`)
-- IP addresses
-- GPIO lines
+
+- serial ports, for example `/dev/ttyUSB0`, `/dev/ttyACM0`, or `/dev/cu.usbmodem...`
+- IP addresses, for example Modbus TCP hosts or remote GPIO hosts
+- GPIO chips and lines, for example `/dev/gpiochip0`, line `17`
 - probe serials
-- firmware paths
+- CAN interfaces, for example `can0`
+- firmware paths, for example `build/fw.elf` or `build/firmware.bin`
+- expected UART/CAN/Modbus responses
 
-3. Run:
+3. Run doctor to inspect your machine:
 
-benchci run -b bench.yaml -s suite.yaml -a build/fw.elf
+```bash
+benchci doctor
+benchci doctor --ports
+benchci doctor --usb
+benchci doctor --bench bench.yaml
+```
+
+4. Validate the config:
+
+```bash
+benchci validate --bench bench.yaml --suite suite.yaml
+```
+
+5. Run locally:
+
+```bash
+benchci run --bench bench.yaml --suite suite.yaml --artifact build/fw.elf --verbose
+```
+
+For examples that define the firmware artifact path inside `bench.yaml`, `--artifact` may be optional. Passing `--artifact` from the CLI is still useful in CI because it makes the tested firmware explicit.
 
 ---
 
-## ⚠️ Important Notes
+## Evidence Reports and traceability examples
+
+Traceability examples may include fields like:
+
+```yaml
+suite:
+  name: stm32wl-boot-validation
+  version: "1.0.0"
+  release_id: "demo-fw-0.1.0"
+  requirement_ids:
+    - REQ-BOOT-001
+  risk_ids:
+    - RISK-BOOT-001
+  tags:
+    - smoke
+    - hardware-ci
+
+tests:
+  - name: firmware boots and prints ready
+    test_case_id: TC-BOOT-001
+    requirement_ids:
+      - REQ-BOOT-001
+    risk_ids:
+      - RISK-BOOT-001
+    tags:
+      - boot
+      - uart
+    steps:
+      - flash:
+          node: dut
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "READY"
+          within_ms: 5000
+```
+
+These fields help BenchCI connect a run to:
+
+```text
+requirement -> test case -> hardware run -> evidence artifact
+```
+
+After a run, BenchCI can produce artifacts such as:
+
+```text
+benchci-results/
+├── results.json
+├── evidence.json
+├── evidence.html
+├── metadata.json
+├── inputs/
+│   ├── bench.yaml
+│   └── suite.yaml
+└── nodes/
+    └── dut/
+        ├── flash.log
+        └── transport-console.log
+```
+
+Use `evidence.html` for a human-readable report and `evidence.json` for machine-readable traceability.
+
+---
+
+## Important notes
 
 ### These are templates
 
-You MUST adapt:
+You must adapt:
+
 - ports
-- addresses
+- IP addresses
+- GPIO lines
 - hardware wiring
 - expected responses
-
----
+- firmware artifact paths
+- flashing tool configuration
 
 ### One GPIO backend per node
 
-Currently:
-- a node can use **only one GPIO backend**
+Currently, a node should use one GPIO backend consistently.
 
-Do NOT mix:
-- `local_gpio` and `remote_gpio` in the same node
+Avoid mixing these in the same node:
 
----
+- `local_gpio`
+- `remote_gpio`
+- `mock_gpio`
+
+Use a separate node if you need to model different GPIO control locations.
+
+### Local GPIO vs remote GPIO
+
+Use `local_gpio` when the BenchCI runner/Agent is running on the same Linux machine that owns the GPIO device:
+
+```yaml
+backend: local_gpio
+chip: /dev/gpiochip0
+line: 17
+```
+
+Use `remote_gpio` when GPIO operations are delegated to another BenchCI-compatible service:
+
+```yaml
+backend: remote_gpio
+host: 192.168.1.60
+port: 8090
+token_env: BENCHCI_REMOTE_GPIO_TOKEN
+chip: /dev/gpiochip0
+line: 17
+```
+
+### CAN examples need SocketCAN setup
+
+Before running CAN examples, make sure your CAN interface exists and is up, for example:
+
+```bash
+sudo ip link set can0 up type can bitrate 500000
+ip link show can0
+```
 
 ### Use smaller benches in practice
 
-Real setups typically:
-- use 1–2 nodes
-- use 1–2 transports
+Real setups usually start with:
 
-These examples show **capability coverage**, not minimal setups.
+- one DUT
+- one flashing method
+- one UART or fieldbus transport
+- one or two GPIO lines
 
----
-
-## 🚀 Recommended Learning Path
-
-If you’re new to BenchCI:
-
-1. Start with:
-   - `device_boot_validation`
-
-2. Then try:
-   - `local_gpio_reset_and_ready`
-
-3. Then explore:
-   - Modbus or CAN examples
-
-4. Finally:
-   - multi-node setups
-   - remote GPIO
+Examples can show more capability than a first production setup should use.
 
 ---
 
-## 🎯 Summary
+## Recommended learning path
 
-These examples demonstrate that BenchCI supports:
+If you are new to BenchCI:
 
-- multiple flashing backends
-- multiple transport protocols
-- GPIO automation (local and remote)
-- multi-node orchestration
-- CI-friendly execution
+1. Start with a simple communication example:
+   - `02-modbus-rtu-plc-simple`
+   - `06-multi-node-uart-simple`
+   - `08-can-ecu-handshake-simple`
 
-BenchCI scales from:
+2. Try a flashing example:
+   - `09-stm32wl-boot-validation-traceable`
+   - `01-esp32-esptool-uart-traceable`
 
-single board debugging  
-→ to  
-distributed hardware validation systems
+3. Try GPIO control:
+   - `05-local-gpio-reset-ready-advanced`
+   - `07-remote-gpio-power-cycle-moderate`
+
+4. Try a more production-like provisioning flow:
+   - `04-gateway-jlink-provisioning-moderate`
+
+5. Try cloud execution after local validation.
 
 ---
 
@@ -358,14 +582,45 @@ benchci login
 
 benchci benches list
 
-benchci run --cloud \
-  --bench-id my-cloud-bench \
-  --suite suite.yaml \
-  --artifact build/fw.elf
+benchci run --cloud   --bench-id my-cloud-bench   --suite suite.yaml   --artifact build/fw.elf   --verbose
 ```
 
-Use the dashboard to inspect the resulting run:
+Use the dashboard to inspect:
+
+- run status
+- evidence summary
+- traceability
+- failure classification
+- events
+- artifacts
+
+Dashboard:
 
 ```text
 https://app.benchci.dev
+```
+
+---
+
+## Summary
+
+These examples demonstrate that BenchCI supports:
+
+- multiple flashing backends
+- UART, Modbus RTU, Modbus TCP, and CAN
+- GPIO automation, both local and remote
+- multi-node orchestration
+- CI-friendly execution through Agent and Cloud Mode
+- structured results, logs, Evidence Reports, and traceability metadata
+
+BenchCI scales from:
+
+```text
+single-board debugging
+        ↓
+repeatable local hardware tests
+        ↓
+shared cloud-connected benches
+        ↓
+traceable hardware validation evidence
 ```

@@ -64,3 +64,18 @@ A customer is ready for pilot use when:
 - Cloud Mode run can execute
 - run events appear
 - artifacts can be downloaded
+- `evidence.json` and `evidence.html` are present in artifacts
+- dashboard shows Evidence and Traceability cards when metadata exists
+- failed runs show structured failure explanations instead of generic unknown failures
+
+## Evidence review during pilot onboarding
+
+For pilot customers, review at least one successful and one failed run with the customer.
+
+Check that:
+
+- the CLI prints useful failure/evidence summaries
+- dashboard run detail shows failure context
+- artifacts include `results.json`, `evidence.json`, `evidence.html`, and input snapshots
+- traceability fields appear when the customer's `suite.yaml` includes requirement/test/risk IDs
+- the customer understands that BenchCI supports verification evidence but does not certify the product by itself

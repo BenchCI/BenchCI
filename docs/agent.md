@@ -76,7 +76,7 @@ The Agent will:
 - send heartbeats
 - poll for assignments
 - execute runs near the hardware
-- upload events and artifacts
+- upload events, artifacts, evidence, and traceability metadata
 
 ### 3. Verify the bench is visible
 
@@ -153,7 +153,7 @@ The Agent can:
 - enforce one active run per bench
 - execute local run near the hardware
 - expose structured run events
-- package and serve artifacts
+- package and serve artifacts, including `results.json`, `evidence.json`, `evidence.html`, and input snapshots
 - provide remote GPIO endpoints for split deployments
 - connect to the BenchCI backend as a cloud execution worker
 
@@ -357,6 +357,23 @@ Each run stores:
 - artifacts
 
 ---
+
+## Evidence artifacts from Agent runs
+
+Agent and Cloud Agent runs preserve the same evidence package produced by local execution.
+
+The artifact ZIP can include:
+
+- `results.json`
+- `evidence.json`
+- `evidence.html`
+- `metadata.json`
+- `inputs/bench.yaml`
+- `inputs/suite.yaml`
+- per-node logs such as `flash.log`, `transport-*.log`, and `gpio.log`
+- power logs where power resources are used
+
+For Cloud Agent runs, the backend extracts key fields from `evidence.json`, such as firmware hash, Git commit, CI job URL, requirement IDs, test case IDs, risk IDs, and whether `evidence.html` is available.
 
 ## Security notes
 

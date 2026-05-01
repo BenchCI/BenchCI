@@ -183,6 +183,31 @@ See:
 
 ---
 
+## What are Evidence Reports?
+
+Evidence Reports are files generated for each run:
+
+- `evidence.json` for machines and integrations
+- `evidence.html` for humans
+- `metadata.json` for supporting metadata
+- input snapshots of `bench.yaml` and `suite.yaml`
+
+They capture firmware hash, Git/CI metadata, bench/suite hashes, artifacts, structured failure details, and optional requirement/test/risk traceability.
+
+## What are requirement IDs, test case IDs, and risk IDs?
+
+They are optional labels in `suite.yaml`:
+
+- requirement ID: what the system must do, for example `REQ-BOOT-001`
+- test case ID: how the requirement is verified, for example `TC-BOOT-001`
+- risk ID: what could go wrong, for example `RISK-BOOT-001`
+
+The useful chain is:
+
+```text
+Risk -> Requirement -> Test case -> BenchCI run evidence
+```
+
 ## Should I start with Cloud Mode immediately?
 
 Usually no.

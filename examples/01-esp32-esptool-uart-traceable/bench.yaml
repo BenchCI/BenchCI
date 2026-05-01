@@ -1,0 +1,36 @@
+version: "1"
+bench:
+  name: "esp32-esptool-uart-bench"
+  description: "Flash an ESP32-family device with esptool and validate text startup over UART. Replace the port/chip/offset values for your board."
+defaults:
+  node: esp
+  timeouts:
+    within_ms: 1500
+artifacts:
+  root_dir: "benchci-results"
+  per_node_dirs: true
+nodes:
+  esp:
+    kind: mcu
+    role: primary
+    tags: ["esp32", "esptool", "uart"]
+    flash:
+      backend: esptool
+      port: "/dev/ttyUSB0"        # Replace with the ESP32 serial port from `benchci doctor --ports`.
+      baud: 921600
+      chip: "esp32s3"             # Change to esp32, esp32s3, esp32c3, etc.
+      offset: "0x10000"           # Change if your firmware layout uses another offset.
+      artifact: "build/esp_app.bin"
+      extra_args:
+        - "--before"
+        - "default_reset"
+        - "--after"
+        - "hard_reset"
+    reset:
+      method: esptool
+    transports:
+      console:
+        backend: uart
+        port: "/dev/ttyUSB0"       # Usually the same port used by esptool.
+        baud: 115200
+        timeout_ms: 100

@@ -13,7 +13,7 @@ Cloud-connected Agent
     ↓
 real hardware bench
     ↓
-results in CLI + dashboard
+results + evidence in CLI + dashboard
 ```
 
 ---
@@ -27,7 +27,7 @@ By the end of this example, a CI workflow will:
 3. ask BenchCI to run a hardware test
 4. flash the board through a registered Agent
 5. collect results and logs
-6. show the run in the BenchCI dashboard
+6. show the run, evidence, traceability, and artifacts in the BenchCI dashboard
 
 ---
 
@@ -225,7 +225,7 @@ After pushing:
 3. BenchCI logs in
 4. BenchCI schedules the run on the selected bench
 5. the Agent flashes firmware and executes the suite
-6. BenchCI downloads results into `benchci-results/`
+6. BenchCI downloads results and evidence into `benchci-results/`
 7. GitHub uploads results as workflow artifacts
 
 ---
@@ -303,6 +303,31 @@ power.log
 The exact logs depend on your bench and suite.
 
 ---
+
+## Evidence produced by this workflow
+
+The hardware-test job also produces evidence artifacts:
+
+```text
+benchci-results/
+├── cloud_<run_id>.zip
+└── ...
+```
+
+Inside the downloaded ZIP you should find files such as:
+
+```text
+results.json
+evidence.json
+evidence.html
+metadata.json
+inputs/bench.yaml
+inputs/suite.yaml
+```
+
+`evidence.json` records the firmware hash, Git metadata, CI job URL, bench/suite hashes, and traceability fields from `suite.yaml`. `evidence.html` is the human-readable report.
+
+In the dashboard, open the run detail page to see the Evidence and Traceability sections.
 
 ## Why this example matters
 

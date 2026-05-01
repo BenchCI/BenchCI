@@ -11,7 +11,7 @@ BenchCI CLI schedules a cloud run
         ↓
 Cloud-connected Agent flashes and tests real hardware
         ↓
-Results return to GitHub Actions and the BenchCI dashboard
+Results, evidence, and traceability return to GitHub Actions and the BenchCI dashboard
 ```
 
 Use this when you want pull requests or pushes to validate firmware on real devices instead of stopping at compilation.
@@ -210,6 +210,11 @@ Typical contents include:
 
 ```text
 results.json
+evidence.json
+evidence.html
+metadata.json
+inputs/bench.yaml
+inputs/suite.yaml
 flash.log
 transport-*.log
 gpio.log
@@ -219,6 +224,14 @@ power.log
 The exact logs depend on your bench and test suite.
 
 ---
+
+## Evidence in CI
+
+When the workflow runs in CI, BenchCI can capture CI metadata such as provider, run ID, job ID, and job URL. Together with Git metadata and firmware hashes, this lets the evidence package connect a hardware result back to the exact CI build.
+
+If your `suite.yaml` includes `requirement_ids`, `test_case_id`, `risk_ids`, `release_id`, or `tags`, those values are included in `results.json`, `evidence.json`, `evidence.html`, and the dashboard run detail.
+
+Upload `benchci-results/` as a CI artifact so the evidence package is retained with the pipeline.
 
 ## Direct Agent mode
 

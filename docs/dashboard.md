@@ -49,6 +49,8 @@ The dashboard is designed to show:
 - run events
 - bench capabilities
 - artifacts
+- evidence report summary
+- requirement/test/risk traceability
 - setup guidance
 
 ---
@@ -79,7 +81,10 @@ Use it to inspect:
 - agent assignment
 - duration
 - error classification
+- structured failure explanation and suggested checks
 - event timeline
+- evidence report summary
+- requirement/test/risk traceability
 - artifacts
 
 ### Benches
@@ -108,3 +113,43 @@ Use this page when:
 - checking Cloud Mode setup
 - copying CLI commands
 - onboarding a new workspace
+
+## Run detail evidence
+
+For Cloud runs, the run detail panel can show an Evidence Report section with:
+
+- firmware filename and SHA256
+- Git commit, branch, and remote
+- CI provider and CI job URL
+- bench ID and Agent ID
+- suite hash
+- bench config hash
+- result status
+- whether `evidence.html` is included in artifacts
+
+The full evidence report is available in the artifacts ZIP as `evidence.html` and `evidence.json`.
+
+## Traceability view
+
+If `suite.yaml` includes traceability fields, the dashboard can show:
+
+- requirement IDs
+- test case IDs
+- risk IDs
+- tags
+- per-test mapping
+
+This helps teams connect a failed or passed hardware run to the requirement, risk, or test case it covers.
+
+## Failure context
+
+Failed runs can show structured failure information:
+
+- category
+- title
+- explanation
+- suggested checks
+- failed step
+- relevant artifact paths
+
+This reduces generic “unknown failure” cases and points users toward the right log or hardware check.

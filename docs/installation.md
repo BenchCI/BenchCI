@@ -71,6 +71,14 @@ Run diagnostics:
 benchci doctor
 ```
 
+For hardware setup, focused doctor commands are useful:
+
+```bash
+benchci doctor --ports
+benchci doctor --usb
+benchci doctor --tools
+```
+
 Check a specific bench file:
 
 ```bash

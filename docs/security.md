@@ -30,6 +30,25 @@ This enables separation between customer environments.
 
 Run outputs such as logs and results are scoped to the owning workspace/session path.
 
+## Evidence and artifact sensitivity
+
+Evidence artifacts may contain information that should be treated as internal engineering data:
+
+- firmware filenames and hashes
+- Git commit, branch, and remote URL
+- CI job URL
+- bench and Agent identifiers
+- test names, requirement IDs, risk IDs, and logs
+- input snapshots of `bench.yaml` and `suite.yaml`
+
+Do not publish artifact ZIPs unless you have reviewed them. Treat evidence reports as workspace-scoped engineering records.
+
+## Token and secret handling
+
+Do not store Agent tokens, account passwords, or CI secrets in `bench.yaml`, `suite.yaml`, or evidence reports. Use environment variables and CI secret stores.
+
+For remote GPIO, prefer `token_env` so the token is read from the environment rather than committed to source control.
+
 ## Recommended Best Practices
 
 - rotate tokens periodically

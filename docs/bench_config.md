@@ -100,6 +100,33 @@ artifacts:
   per_node_dirs: true
 ```
 
+## Using doctor while editing `bench.yaml`
+
+Before guessing ports or GPIO paths, inspect the machine:
+
+```bash
+benchci doctor --ports
+benchci doctor --usb
+benchci doctor --tools
+```
+
+After editing `bench.yaml`, cross-check it:
+
+```bash
+benchci doctor --bench bench.yaml
+```
+
+Doctor can help identify:
+
+- serial ports and likely device types
+- ST-Link or other USB debug probes
+- USB-UART / USB-RS485 adapters
+- USB relay devices
+- `/dev/gpiochipX` devices
+- missing tools such as OpenOCD, STM32CubeProgrammer, J-Link, or esptool
+
+`benchci validate` checks schema and suite/bench compatibility. `benchci doctor --bench` checks the current machine and hardware environment.
+
 ## Full example
 
 ```yaml
@@ -175,6 +202,17 @@ artifacts:
   root_dir: benchci-results
   per_node_dirs: true
 ```
+
+## Evidence impact of `bench.yaml`
+
+BenchCI hashes the bench configuration and stores a snapshot in the evidence package:
+
+```text
+evidence.json -> bench.config_sha256
+inputs/bench.yaml
+```
+
+This means a run can later prove which bench definition was used, even if `bench.yaml` changes afterward.
 
 ## Flash configuration
 

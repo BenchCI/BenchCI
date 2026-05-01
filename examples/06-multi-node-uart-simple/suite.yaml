@@ -1,0 +1,27 @@
+version: "1"
+suite:
+  name: "multi-node-system-smoke"
+  description: "Simple multi-node example. Intentionally no requirement IDs; users can focus on node/transport structure first."
+tests:
+  - name: "dut boots cleanly"
+    steps:
+      - flash:
+          node: dut
+      - reset:
+          node: dut
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "BOOT OK"
+          within_ms: 4000
+  - name: "helper receives command"
+    steps:
+      - send_uart:
+          node: helper
+          transport: shell
+          data: "ARM\n"
+      - expect_uart:
+          node: helper
+          transport: shell
+          contains: "ARMED"
+          within_ms: 1000

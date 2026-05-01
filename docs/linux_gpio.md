@@ -149,11 +149,15 @@ You need:
 - Python `gpiod` bindings
 - permission to access the GPIO device
 
-Useful diagnostic command:
+Useful diagnostic commands:
 
 ```bash
+benchci doctor --ports
+benchci doctor --usb
 benchci doctor --bench bench.yaml
 ```
+
+Doctor can list GPIO chips such as `/dev/gpiochip0` and warn when a bench references a GPIO chip that is not available on the current machine.
 
 ## Notes
 

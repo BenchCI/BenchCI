@@ -272,6 +272,33 @@ benchci doctor --json
 benchci doctor --export doctor-report.zip
 ```
 
+### Improved doctor output
+
+`benchci doctor` is intended to help users build a correct `bench.yaml` without guessing.
+
+It can show:
+
+- OS, Python, and BenchCI version
+- login/workspace/API status when available
+- serial ports with likely usage hints
+- USB devices such as ST-Link, USB-UART, USB-RS485, relays, or probes
+- GPIO chips such as `/dev/gpiochip0`
+- common flashing tools such as OpenOCD, STM32CubeProgrammer, J-Link, and esptool
+- bench-specific checks when `--bench bench.yaml` is provided
+
+Useful focused commands:
+
+```bash
+benchci doctor --ports
+benchci doctor --usb
+benchci doctor --tools
+benchci doctor --bench bench.yaml
+benchci doctor --json
+benchci doctor --export doctor-report.zip
+```
+
+When a failure suggests checking ports, tools, or GPIO access, run doctor on the machine connected to the hardware.
+
 ## `benchci agent serve`
 
 Start a BenchCI Agent on the current machine.
@@ -358,13 +385,34 @@ benchci runs artifacts <RUN_ID>
 
 Commands that execute cloud runs require a valid BenchCI session. The CLI refreshes the stored session when needed before running hardware operations.
 
-## Result artifacts
+## Result artifacts and evidence
 
 Local runs write results under a timestamped directory inside `benchci-results/`. Remote runs and cloud runs download a ZIP artifact bundle into `benchci-results/`.
 
-Verbose runs may produce richer diagnostic context in:
+Typical outputs include:
 
-- `results.json`
+- `results.json` — execution summary, test results, structured failures, and per-test traceability
+- `evidence.json` — machine-readable evidence report
+- `evidence.html` — human-readable evidence report
+- `metadata.json` — supporting run metadata
+- `inputs/bench.yaml` and `inputs/suite.yaml` — snapshots of the exact inputs used
 - transport logs
 - `flash.log`
 - `gpio.log`
+- `power.log` where power resources are used
+
+The CLI prints a compact evidence summary when evidence is available, including firmware hash, Git commit, CI job URL, bench, suite, and traceability IDs.
+
+## Failure output
+
+BenchCI failures are structured when possible. Instead of only showing a raw exception, CLI, artifacts, backend, and dashboard can include:
+
+- failure category
+- title and message
+- explanation
+- suggested checks
+- failed step context
+- related artifact paths
+- raw error details where useful
+
+This is why failed runs may point you to a specific log such as `flash.log`, `transport-console.log`, `gpio.log`, or `power.log`.

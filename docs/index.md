@@ -39,7 +39,7 @@ BenchCI schedules a hardware run
         ↓
 Agent flashes and tests a real device
         ↓
-Results, logs, and artifacts return to CI/dashboard
+Results, logs, artifacts, and evidence reports return to CI/dashboard
 ```
 
 You can start locally, then move the same test model to a remote Agent or BenchCI Cloud.
@@ -114,6 +114,15 @@ Control:
 - mock GPIO
 - relay-backed power workflows
 
+Evidence and traceability:
+
+- `evidence.json` machine-readable run evidence
+- `evidence.html` human-readable evidence reports
+- input snapshots of `bench.yaml` and `suite.yaml`
+- firmware, suite, and bench config hashes
+- optional requirement, test case, risk, release, and tag metadata
+- structured failure explanations and suggested checks
+
 Execution:
 
 - local runs
@@ -136,6 +145,7 @@ github_actions.md
 gitlab_ci.md
 bench_config.md
 suite_config.md
+evidence_reports.md
 cli.md
 examples.md
 dashboard.md

@@ -1,0 +1,36 @@
+version: "1"
+
+bench:
+  name: "mock-power-demo-bench"
+  description: "Power v2 example for documentation, dry-runs, CI tests, and demos without physical relay hardware."
+
+defaults:
+  node: dut
+  timeouts:
+    within_ms: 2000
+
+artifacts:
+  root_dir: "benchci-results"
+  per_node_dirs: true
+
+resources:
+  dut_power:
+    kind: power_controller
+    driver:
+      type: mock_power
+      outlets:
+        main: false
+      on_settle_ms: 0
+      off_settle_ms: 0
+
+nodes:
+  dut:
+    kind: device
+    role: primary
+    tags: ["mock-power", "uart"]
+    transports:
+      console:
+        backend: uart
+        port: "/dev/ttyUSB0"
+        baud: 115200
+        timeout_ms: 100

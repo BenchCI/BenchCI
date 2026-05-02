@@ -1,0 +1,30 @@
+version: "1"
+
+suite:
+  name: "generic-serial-relay-power-v2-power-cycle"
+  description: "Power-cycle a DUT through an generic serial relay using BenchCI's vendor-neutral power steps."
+  version: "1.0.0"
+  requirement_ids:
+    - REQ-POWER-001
+  tags:
+    - power-v2
+    - generic-serial-relay
+    - usb-relay
+
+tests:
+  - name: "generic serial relay power cycle and boot"
+    test_case_id: TC-GENERIC-SERIAL-POWER-BOOT-001
+    requirement_ids:
+      - REQ-POWER-001
+    tags: ["power", "boot", "generic-serial-relay"]
+    steps:
+      - power_cycle:
+          resource: dut_power
+          outlet: main
+          off_ms: 1000
+          on_settle_ms: 2000
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "SYSTEM READY"
+          within_ms: 5000

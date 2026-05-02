@@ -99,6 +99,17 @@ benchci doctor --agent http://192.168.1.50:8080 --token "$BENCHCI_AGENT_TOKEN"
 
 ---
 
+
+## Optional hardware dependencies
+
+Some BenchCI backends require extra system or Python packages depending on your bench:
+
+- serial relay and UART workflows need `pyserial`
+- local GPIO and `gpio_power` need Linux GPIO/libgpiod support
+- HTTP relay and HTTP measurement workflows need network access to the lab controller
+
+Run `benchci doctor --bench bench.yaml` on the hardware-connected machine to see what is missing for your specific bench.
+
 ## Install on a hardware-connected machine
 
 This is the machine physically connected to the DUT, debugger, UART/CAN/Modbus adapters, GPIO lines, relays, or power control hardware.

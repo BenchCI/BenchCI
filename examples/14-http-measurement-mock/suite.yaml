@@ -1,0 +1,39 @@
+version: "1"
+suite:
+  name: measurement-v1-smoke
+  description: "Power-cycle the DUT, wait for boot, measure sleep current, and assert the metric."
+  version: "0.1"
+  requirement_ids:
+    - REQ-POWER-BOOT-001
+    - REQ-SLEEP-CURRENT-001
+  tags:
+    - smoke
+    - measurement
+
+tests:
+  - name: boot_and_sleep_current
+    test_case_id: TC-MEAS-001
+    requirement_ids:
+      - REQ-POWER-BOOT-001
+      - REQ-SLEEP-CURRENT-001
+    tags:
+      - current
+    steps:
+      - power_cycle:
+          resource: dut_power
+          outlet: main
+          off_ms: 1000
+          on_settle_ms: 2000
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "SYSTEM READY"
+          within_ms: 5000
+      - measure:
+          resource: sleep_current
+          record_as: sleep_current_a
+          unit: A
+          expect_less_than: 0.150
+      - assert_metric:
+          name: sleep_current_a
+          expect_less_than_or_equal: 0.150

@@ -1,0 +1,56 @@
+version: "1"
+bench:
+  name: http-lab-controller-measurement-demo
+  description: "BenchCI Measurement v1 demo using an HTTP lab controller for current measurement."
+
+defaults:
+  node: dut
+  timeouts:
+    within_ms: 5000
+
+nodes:
+  dut:
+    kind: mcu
+    role: primary
+    flash:
+      backend: openocd
+      interface_cfg: interface/stlink.cfg
+      target_cfg: target/stm32f0x.cfg
+      artifact: build/firmware.elf
+    reset:
+      method: openocd
+    transports:
+      console:
+        backend: uart
+        port: /dev/ttyACM0
+        baud: 115200
+        timeout_ms: 100
+
+resources:
+  dut_power:
+    kind: power_controller
+    driver:
+      type: http_relay
+      outlets:
+        main: "1"
+      on_url: "http://192.168.1.50/relay/{channel}/on"
+      off_url: "http://192.168.1.50/relay/{channel}/off"
+      get_url: "http://192.168.1.50/relay/{channel}/state"
+      method: GET
+      on_settle_ms: 1000
+      off_settle_ms: 250
+
+  supply_current:
+    kind: measurement
+    driver:
+      type: http_measurement
+      quantity: current
+      url: "http://192.168.1.60/measurements/supply_current"
+      value_field: value
+      unit_field: unit
+      unit: A
+      timeout_ms: 2000
+
+artifacts:
+  root_dir: benchci-results
+  per_node_dirs: true

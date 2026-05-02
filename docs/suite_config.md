@@ -168,6 +168,9 @@ BenchCI currently supports these step types:
 - `expect_can`
 - `power_set`
 - `power_cycle`
+- `power_expect`
+- `measure`
+- `assert_metric`
 
 ## Reset step
 
@@ -391,13 +394,15 @@ BenchCI cross-validates the suite against the bench before execution. For exampl
 - transport backend must match the step type
 - referenced GPIO logical line names must exist
 - flashing requires the node to define a flash backend
+- referenced power resources must exist
+- referenced measurement resources must exist
 
 This catches many configuration mistakes before hardware execution starts.
 
 
 ## Power steps
 
-If your bench defines a supported power resource, suites can control outlets.
+If your bench defines a supported power resource, suites can control outlets without exposing relay-specific commands in the test logic.
 
 ### Set power state
 
@@ -418,4 +423,54 @@ If your bench defines a supported power resource, suites can control outlets.
     on_settle_ms: 2000
 ```
 
+### Expect power state
+
+```yaml
+- power_expect:
+    resource: dut_power
+    outlet: dut
+    state: true
+```
+
+`power_expect` requires backend state readback or safe state tracking. Some generic serial relays only support ON/OFF commands and cannot report state.
+
 Power steps are useful for realistic hardware reset, boot recovery, and CI smoke tests.
+
+## Measurement and metric steps
+
+Measurement steps read bench-level measurement resources and can record values as metrics.
+
+### Measure a resource
+
+```yaml
+- measure:
+    resource: sleep_current
+    record_as: sleep_current_a
+    unit: A
+    expect_less_than: 0.150
+```
+
+The `record_as` name becomes a metric that can be included in results and evidence.
+
+### Assert a metric
+
+```yaml
+- assert_metric:
+    name: sleep_current_a
+    expect_less_than_or_equal: 0.150
+```
+
+Metric assertions are useful when one step records a value and a later step validates it.
+
+Supported assertion styles include:
+
+```yaml
+expect_less_than: 0.150
+expect_less_than_or_equal: 0.150
+expect_greater_than: 3.0
+expect_greater_than_or_equal: 3.0
+expect_equal: 3.3
+tolerance: 0.05
+```
+
+Use `tolerance` with `expect_equal` for analog or physical measurements where exact equality is unrealistic.

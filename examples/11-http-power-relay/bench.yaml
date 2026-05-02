@@ -1,8 +1,8 @@
 version: "1"
 
 bench:
-  name: "gpio-power-cycle-bench"
-  description: "Power v2 example: DUT power is controlled through a bench-level gpio_power resource. Replace chip, GPIO line, and UART port for your Raspberry Pi / Linux agent setup."
+  name: "http-relay-power-cycle-bench"
+  description: "Power v2 example: DUT power is controlled through an HTTP relay or internal lab-controller API. Replace URLs with your relay/controller endpoints."
 
 defaults:
   node: dut
@@ -17,12 +17,17 @@ resources:
   dut_power:
     kind: power_controller
     driver:
-      type: gpio_power
-      chip: "/dev/gpiochip0"
+      type: http_relay
       outlets:
-        main: 5
-      active_high: true
-      initial_state: false
+        main: "1"
+      on_url: "http://192.168.1.50/relay/{channel}/on"
+      off_url: "http://192.168.1.50/relay/{channel}/off"
+      get_url: "http://192.168.1.50/relay/{channel}/state"
+      method: GET
+      headers: {}
+      timeout_ms: 2000
+      on_values: ["1", "true", "on", "closed", "enabled"]
+      off_values: ["0", "false", "off", "open", "disabled"]
       on_settle_ms: 1000
       off_settle_ms: 500
 
@@ -30,7 +35,7 @@ nodes:
   dut:
     kind: device
     role: primary
-    tags: ["gpio-power", "uart", "power-cycle"]
+    tags: ["http-relay", "uart", "power-cycle"]
     transports:
       console:
         backend: uart
@@ -38,13 +43,6 @@ nodes:
         baud: 115200
         timeout_ms: 100
     gpio:
-      fault_n:
-        backend: local_gpio
-        chip: "/dev/gpiochip0"
-        line: 6
-        direction: input
-        active_high: false
-        bias: pull_up
       heartbeat:
         backend: local_gpio
         chip: "/dev/gpiochip0"

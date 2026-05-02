@@ -47,9 +47,10 @@ The dashboard is designed to show:
 - recent failures
 - run timelines
 - run events
-- bench capabilities
+- bench capabilities, including power and measurement resources where available
 - artifacts
 - evidence report summary
+- captured metrics and measurements where available
 - requirement/test/risk traceability
 - setup guidance
 
@@ -125,7 +126,8 @@ For Cloud runs, the run detail panel can show an Evidence Report section with:
 - suite hash
 - bench config hash
 - result status
-- whether `evidence.html` is included in artifacts
+- whether `evidence.html` and `manifest.json` are included in artifacts
+- captured metrics and measurements when the suite records them
 
 The full evidence report is available in the artifacts ZIP as `evidence.html` and `evidence.json`.
 

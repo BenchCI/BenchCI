@@ -24,6 +24,7 @@ GPIO lets BenchCI automate hardware signals such as:
 - ready/status outputs
 - interrupt lines
 - trigger lines between nodes
+- relay or load-switch control through `gpio_power` resources
 
 ## Local GPIO example
 
@@ -174,3 +175,32 @@ Doctor can list GPIO chips such as `/dev/gpiochip0` and warn when a bench refere
 In Direct Agent Mode, that machine is usually the Agent host.
 
 In Cloud Mode, the cloud-connected Agent executes `run_local(...)` near the hardware, so GPIO access still happens locally on the Agent machine. The user or CI runner does not need direct access to `/dev/gpiochipX`.
+
+## GPIO-backed power resources
+
+For relay or load-switch control, prefer a bench-level `gpio_power` resource over raw `gpio_set` steps when the intent is power control.
+
+```yaml
+resources:
+  dut_power:
+    kind: power_controller
+    driver:
+      type: gpio_power
+      chip: /dev/gpiochip0
+      outlets:
+        main: 17
+      active_high: true
+      initial_state: false
+```
+
+Then the suite can use:
+
+```yaml
+- power_cycle:
+    resource: dut_power
+    outlet: main
+    off_ms: 1000
+    on_settle_ms: 2000
+```
+
+Use raw `gpio_set` and `gpio_expect` for signal-level testing. Use `power_set`, `power_cycle`, and `power_expect` when the logical operation is power control.

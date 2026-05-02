@@ -44,7 +44,7 @@ Cloud Mode requires at least one BenchCI Agent registered to your workspace and 
 
 Before running Cloud Mode, make sure:
 
-- the Agent machine is connected to the DUT, debugger, UART/CAN/Modbus adapters, GPIO, relays, or other required hardware
+- the Agent machine is connected to the DUT, debugger, UART/CAN/Modbus adapters, GPIO, relays, measurement devices, or other required hardware
 - local execution works on the Agent machine
 - the Agent is registered to your BenchCI workspace
 - the bench appears in the dashboard
@@ -129,7 +129,7 @@ benchci run --cloud --has-gpio --suite suite.yaml --artifact build/fw.elf
 benchci run --cloud --has-power --suite suite.yaml --artifact build/fw.elf
 ```
 
-If multiple benches match your request, the scheduler selects an available bench based on capability and availability.
+If multiple benches match your request, the scheduler selects an available bench based on capability and availability. Bench summaries can also expose power and measurement capabilities so teams can understand which benches are suitable for a given suite.
 
 ---
 

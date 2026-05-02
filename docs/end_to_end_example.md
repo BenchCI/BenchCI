@@ -13,7 +13,7 @@ Cloud-connected Agent
     ↓
 real hardware bench
     ↓
-results + evidence in CLI + dashboard
+results + measurements + evidence in CLI + dashboard
 ```
 
 ---
@@ -294,6 +294,9 @@ Typical contents include:
 
 ```text
 results.json
+evidence.json
+evidence.html
+manifest.json
 flash.log
 transport-*.log
 gpio.log
@@ -318,6 +321,9 @@ Inside the downloaded ZIP you should find files such as:
 
 ```text
 results.json
+evidence.json
+evidence.html
+manifest.json
 evidence.json
 evidence.html
 metadata.json

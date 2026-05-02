@@ -68,6 +68,9 @@ BenchCI currently supports:
 - Modbus RTU
 - Modbus TCP
 - CAN
+- GPIO control and observation
+- bench-level power resources
+- basic measurement resources
 
 ---
 
@@ -101,11 +104,25 @@ Typical outputs include:
 - transport logs
 - GPIO logs
 - power logs
+- measurement logs
+- `evidence.json` and `evidence.html`
+- `manifest.json` with artifact hashes
 - per-node logs
 
 The exact artifacts depend on your bench and suite.
 
 ---
+
+
+## Can BenchCI measure current or voltage?
+
+Measurement v1 supports mock measurements and HTTP-backed lab-controller measurements. This can be used to record values such as sleep current or supply voltage and assert thresholds in `suite.yaml`.
+
+Future measurement backends can add direct SCPI instruments, USB multimeters, oscilloscopes, or customer-specific lab tools behind the same `measure` step.
+
+## Does BenchCI require a specific relay brand?
+
+No. Power v2 uses bench-level power resources. A suite can call `power_cycle` while `bench.yaml` describes whether the implementation is GPIO, HTTP relay, or generic serial relay command maps.
 
 ## Can multiple engineers share benches?
 

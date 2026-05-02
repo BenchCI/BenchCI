@@ -1,0 +1,34 @@
+version: "1"
+
+suite:
+  name: "http-relay-power-v2-power-cycle"
+  description: "Power-cycle a DUT through an HTTP relay/lab-controller and validate UART boot output."
+  version: "1.0.0"
+  requirement_ids:
+    - REQ-POWER-001
+  tags:
+    - power-v2
+    - http-relay
+    - power-cycle
+
+tests:
+  - name: "power cycle and boot over HTTP relay"
+    test_case_id: TC-HTTP-POWER-BOOT-001
+    requirement_ids:
+      - REQ-POWER-001
+    tags: ["power", "boot", "http"]
+    steps:
+      - power_cycle:
+          resource: dut_power
+          outlet: main
+          off_ms: 1000
+          on_settle_ms: 2000
+      - power_expect:
+          resource: dut_power
+          outlet: main
+          state: true
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "SYSTEM READY"
+          within_ms: 5000

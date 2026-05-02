@@ -1,0 +1,49 @@
+version: "1"
+bench:
+  name: nucleo-f072-measurement-demo
+  description: "BenchCI Measurement v1 demo using mock power and mock current measurement."
+
+defaults:
+  node: dut
+  timeouts:
+    within_ms: 5000
+
+nodes:
+  dut:
+    kind: mcu
+    role: primary
+    flash:
+      backend: openocd
+      interface_cfg: interface/stlink.cfg
+      target_cfg: target/stm32f0x.cfg
+      artifact: build/firmware.elf
+    reset:
+      method: openocd
+    transports:
+      console:
+        backend: uart
+        port: /dev/ttyACM0
+        baud: 115200
+        timeout_ms: 100
+
+resources:
+  dut_power:
+    kind: power_controller
+    driver:
+      type: mock_power
+      outlets:
+        main: false
+      on_settle_ms: 1000
+      off_settle_ms: 250
+
+  sleep_current:
+    kind: measurement
+    driver:
+      type: mock_measurement
+      quantity: current
+      value: 0.042
+      unit: A
+
+artifacts:
+  root_dir: benchci-results
+  per_node_dirs: true

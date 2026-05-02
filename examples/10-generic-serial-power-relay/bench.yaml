@@ -1,0 +1,49 @@
+version: "1"
+
+bench:
+  name: "generic-serial-relay-power-cycle-bench"
+  description: "Power v2 example: generic serial relay support using explicit per-channel hex command maps. Use this before adding a dedicated named vendor driver."
+
+defaults:
+  node: dut
+  timeouts:
+    within_ms: 2000
+
+artifacts:
+  root_dir: "benchci-results"
+  per_node_dirs: true
+
+resources:
+  dut_power:
+    kind: power_controller
+    driver:
+      type: usb_relay_serial
+      vendor: generic
+      model: command_map
+      port: "/dev/ttyUSB1"
+      baud: 9600
+      timeout_ms: 500
+      outlets:
+        main: "1"
+      on_commands:
+        "1": "A0 01 01 A2"
+      off_commands:
+        "1": "A0 01 00 A1"
+      # Optional readback commands can be added if your relay has reliable state query support.
+      get_commands: {}
+      on_response_values: ["1", "01", "on", "true"]
+      off_response_values: ["0", "00", "off", "false"]
+      on_settle_ms: 1000
+      off_settle_ms: 500
+
+nodes:
+  dut:
+    kind: device
+    role: primary
+    tags: ["generic-serial-relay", "uart", "power-cycle"]
+    transports:
+      console:
+        backend: uart
+        port: "/dev/ttyUSB0"
+        baud: 115200
+        timeout_ms: 100

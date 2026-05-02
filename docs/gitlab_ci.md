@@ -11,7 +11,7 @@ BenchCI CLI schedules a cloud run
         ↓
 Cloud-connected Agent flashes and tests real hardware
         ↓
-Results, evidence, and traceability return to GitLab artifacts and the BenchCI dashboard
+Results, measurements, evidence, and traceability return to GitLab artifacts and the BenchCI dashboard
 ```
 
 Use this when you want pipeline validation on real devices instead of compile-only firmware checks.
@@ -65,7 +65,7 @@ BenchCI Agent
     ↓
 real hardware bench
     ↓
-results + logs
+results + logs + measurements
 ```
 
 This keeps your GitLab Runner separate from the hardware lab network.
@@ -179,6 +179,9 @@ Typical contents include:
 
 ```text
 results.json
+evidence.json
+evidence.html
+manifest.json
 evidence.json
 evidence.html
 metadata.json

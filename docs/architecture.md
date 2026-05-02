@@ -98,7 +98,7 @@ local runner, Agent, or backend-controlled cloud path
       ↓
  real hardware bench
       ↓
- logs + results
+ logs + results + measurements + evidence
 ```
 
 ## Local execution flow
@@ -110,7 +110,7 @@ bench.yaml + suite.yaml
         ↓
     run_local(...)
         ↓
- start transports / GPIO / power resources
+ start transports / GPIO / power / measurement resources
         ↓
  execute steps
         ↓
@@ -184,6 +184,8 @@ The evidence package can include:
 - risk IDs
 - structured failure explanations
 - artifact file list
+- artifact manifest with SHA256 hashes
+- captured measurement values and run metrics
 
 The backend indexes key fields for Cloud runs so the dashboard can show evidence and traceability without downloading the full ZIP.
 

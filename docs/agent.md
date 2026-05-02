@@ -72,7 +72,7 @@ benchci agent cloud \
 The Agent will:
 
 - register or sync the bench
-- publish capabilities
+- publish capabilities, including transport, flash, GPIO, power, and measurement support
 - send heartbeats
 - poll for assignments
 - execute runs near the hardware
@@ -153,7 +153,7 @@ The Agent can:
 - enforce one active run per bench
 - execute local run near the hardware
 - expose structured run events
-- package and serve artifacts, including `results.json`, `evidence.json`, `evidence.html`, and input snapshots
+- package and serve artifacts, including `results.json`, `evidence.json`, `evidence.html`, `manifest.json`, and input snapshots
 - provide remote GPIO endpoints for split deployments
 - connect to the BenchCI backend as a cloud execution worker
 

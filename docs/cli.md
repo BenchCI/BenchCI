@@ -216,6 +216,16 @@ Optional cloud capability filters include:
 - `--agent` and `--cloud` are mutually exclusive
 - `--bench` and `--bench-id` are mutually exclusive outside cloud mode
 
+### Evidence and metrics summaries
+
+When a run produces evidence, the CLI can print useful summary fields such as firmware hash, Git commit, CI URL, bench/suite hashes, traceability IDs, artifact report availability, and captured metrics from measurement steps.
+
+For example, a low-power test may record:
+
+```text
+sleep_current_a: 0.042 A
+```
+
 ### Remote run lifecycle
 
 The CLI polls the Agent until the run reaches a terminal state:

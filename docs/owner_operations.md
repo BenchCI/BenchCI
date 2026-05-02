@@ -64,8 +64,8 @@ A customer is ready for pilot use when:
 - Cloud Mode run can execute
 - run events appear
 - artifacts can be downloaded
-- `evidence.json` and `evidence.html` are present in artifacts
-- dashboard shows Evidence and Traceability cards when metadata exists
+- `evidence.json`, `evidence.html`, and `manifest.json` are present in artifacts
+- dashboard shows Evidence, Traceability, and metrics/measurement cards when metadata exists
 - failed runs show structured failure explanations instead of generic unknown failures
 
 ## Evidence review during pilot onboarding

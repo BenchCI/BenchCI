@@ -17,6 +17,7 @@ benchci-results/
 ├── results.json
 ├── evidence.json
 ├── evidence.html
+├── manifest.json
 ├── metadata.json
 ├── inputs/
 │   ├── bench.yaml
@@ -70,11 +71,33 @@ It can include:
 - structured failure details
 - traceability IDs
 - artifact file list
+- artifact manifest with SHA256 hashes
+- captured measurements and metrics
 - environment metadata
 
 This makes a run easier to connect to a build, a source revision, a real hardware bench, and a release or QA record.
 
 ---
+
+## `manifest.json`
+
+`manifest.json` is an artifact integrity manifest. It records generated files, file sizes, and SHA256 hashes.
+
+This is useful when evidence needs to be attached to release records or shared with another team because reviewers can verify that artifacts have not changed after the run.
+
+## Measurements and metrics
+
+When a suite uses `measure` or `assert_metric`, BenchCI can include captured values in results and evidence.
+
+Example values:
+
+```text
+sleep_current_a = 0.042 A
+limit           = 0.150 A
+result          = passed
+```
+
+This makes evidence stronger than simple pass/fail logs because it records the actual observed hardware behavior.
 
 ## `evidence.html`
 

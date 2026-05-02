@@ -1,6 +1,6 @@
 # BenchCI Examples
 
-Use these examples as starting templates for real embedded workflows such as boot validation, GPIO reset, Modbus, CAN, ESP32, J-Link, remote GPIO, and multi-node testing.
+Use these examples as starting templates for real embedded workflows such as boot validation, GPIO reset, Modbus, CAN, ESP32, J-Link, remote GPIO, power resources, measurement resources, and multi-node testing.
 
 ---
 
@@ -17,7 +17,7 @@ Some examples are intentionally simple. Others show optional traceability fields
 
 ## Start here
 
-If you are new to BenchCI, begin with one of the simple examples:
+If you are new to BenchCI, begin with one of the simple communication examples:
 
 - `examples/02-modbus-rtu-plc-simple/`
 - `examples/06-multi-node-uart-simple/`
@@ -28,7 +28,15 @@ If you want to see Evidence Reports and traceability metadata, start with:
 - `examples/01-esp32-esptool-uart-traceable/`
 - `examples/09-stm32wl-boot-validation-traceable/`
 
-These examples are templates. You must adapt ports, IP addresses, GPIO lines, firmware paths, expected responses, and flashing tool settings for your hardware.
+If you want to try the newer resource model, start with:
+
+- `examples/10-generic-serial-power-relay/`
+- `examples/11-http-power-relay/`
+- `examples/12-mock-power-control/`
+- `examples/13-http-measurement/`
+- `examples/14-http-measurement-mock/`
+
+These examples are templates. You must adapt ports, IP addresses, GPIO lines, firmware paths, expected responses, relay commands, measurement URLs, and flashing tool settings for your hardware.
 
 ---
 
@@ -37,10 +45,11 @@ These examples are templates. You must adapt ports, IP addresses, GPIO lines, fi
 Not every example needs traceability metadata. Public examples are intentionally mixed:
 
 - **Simple examples** teach the basic BenchCI model with minimal YAML.
-- **Moderate examples** include more realistic hardware resources, flashing, power, or reset flows.
+- **Moderate examples** include more realistic hardware resources, flashing, power, measurement, or reset flows.
 - **Traceability examples** show requirement IDs, test case IDs, risk IDs, release IDs, and tags for Evidence Reports.
+- **Resource examples** show the newer BenchCI resource model where `bench.yaml` hides hardware/vendor details and `suite.yaml` stays focused on test intent.
 
-Start simple, then add traceability when a run should support QA, release, or compliance evidence.
+Start simple, then add traceability, power resources, and measurement resources when a run should support QA, release, or compliance-style evidence.
 
 ---
 
@@ -72,7 +81,22 @@ examples/
 ├── 08-can-ecu-handshake-simple/
 │   ├── bench.yaml
 │   └── suite.yaml
-└── 09-stm32wl-boot-validation-traceable/
+├── 09-stm32wl-boot-validation-traceable/
+│   ├── bench.yaml
+│   └── suite.yaml
+├── 10-generic-serial-power-relay/
+│   ├── bench.yaml
+│   └── suite.yaml
+├── 11-http-power-relay/
+│   ├── bench.yaml
+│   └── suite.yaml
+├── 12-mock-power-control/
+│   ├── bench.yaml
+│   └── suite.yaml
+├── 13-http-measurement/
+│   ├── bench.yaml
+│   └── suite.yaml
+└── 14-http-measurement-mock/
     ├── bench.yaml
     └── suite.yaml
 ```
@@ -372,6 +396,173 @@ This is a good example for showing how a standard firmware boot test can become 
 
 ---
 
+### 10. Generic Serial Power Relay
+
+**Folder:** `examples/10-generic-serial-power-relay/`
+
+#### Use case
+
+Control DUT power through a serial relay board using user-provided ON/OFF command bytes.
+
+#### Covers
+
+- `resources.dut_power`
+- `type: usb_relay_serial`
+- `vendor: generic`
+- `model: command_map`
+- `power_set`
+- `power_cycle`
+- UART boot validation after power restore
+
+#### Traceability level
+
+Moderate.
+
+This example demonstrates the preferred Power v2 philosophy: the suite says `power_cycle`, while `bench.yaml` contains the vendor-specific serial commands.
+
+#### When to use
+
+- LCUS-style serial relay boards
+- low-cost USB relay modules
+- internal relay controllers with serial command protocols
+- teams that want to add relay support without changing BenchCI code
+
+#### Important note
+
+Generic serial command-map relays may not support reliable state readback. Use `power_expect` only when your relay has a supported query/readback behavior.
+
+---
+
+### 11. HTTP Power Relay
+
+**Folder:** `examples/11-http-power-relay/`
+
+#### Use case
+
+Control DUT power through an HTTP-accessible relay, smart PDU, LAN relay, or internal lab controller.
+
+#### Covers
+
+- `resources.dut_power`
+- `type: http_relay`
+- HTTP ON/OFF URLs
+- optional HTTP state readback
+- `power_set`
+- `power_cycle`
+- `power_expect` when readback is configured
+
+#### Traceability level
+
+Moderate.
+
+This example is useful for lab setups where a relay or power controller exposes an HTTP API.
+
+#### When to use
+
+- LAN relay boards
+- smart lab controllers
+- simple internal REST services
+- shared benches where power hardware is controlled over the network
+
+---
+
+### 12. Mock Power Control
+
+**Folder:** `examples/12-mock-power-control/`
+
+#### Use case
+
+Exercise Power v2 suite logic without real power hardware.
+
+#### Covers
+
+- `resources.dut_power`
+- `type: mock_power`
+- `power_set`
+- `power_cycle`
+- `power_expect`
+- local/demo validation of suite behavior
+
+#### Traceability level
+
+Simple / development.
+
+This example is intended for docs, CI dry-runs, local development, and testing BenchCI itself.
+
+#### When to use
+
+- learning Power v2 syntax
+- validating suite structure before wiring hardware
+- demo mode
+- automated tests of BenchCI behavior
+
+---
+
+### 13. HTTP Measurement
+
+**Folder:** `examples/13-http-measurement/`
+
+#### Use case
+
+Read a real measurement value from an HTTP-accessible instrument, lab controller, or measurement service and assert it against a threshold.
+
+#### Covers
+
+- `resources.supply_current` or similar measurement resource
+- `type: http_measurement`
+- `measure`
+- `record_as`
+- `assert_metric`
+- metrics in `results.json` and `evidence.json`
+
+#### Traceability level
+
+Moderate / QA-oriented.
+
+This example shows Measurement v1 with a real external data source. It is useful when a lab controller exposes values such as current, voltage, temperature, pressure, or other physical measurements over HTTP.
+
+#### When to use
+
+- low-power current checks
+- voltage rail checks
+- external sensor/instrument readings
+- lab controllers that expose JSON measurement endpoints
+- QA evidence where measured values matter
+
+---
+
+### 14. HTTP Measurement Mock
+
+**Folder:** `examples/14-http-measurement-mock/`
+
+#### Use case
+
+Demonstrate Measurement v1 behavior with mock-style measurement data and HTTP-style structure.
+
+#### Covers
+
+- measurement resource configuration
+- `measure`
+- `record_as`
+- `assert_metric`
+- evidence metrics
+- development/demo workflow before connecting a real instrument
+
+#### Traceability level
+
+Simple / development.
+
+This example is useful for learning the measurement model and verifying that metrics appear in generated artifacts and evidence reports.
+
+#### When to use
+
+- learning Measurement v1 syntax
+- testing dashboard/evidence display
+- CI dry-runs
+- developing a future real measurement backend
+
+---
+
 ## How to use these examples
 
 1. Copy an example folder:
@@ -384,12 +575,15 @@ cd my-test
 2. Adjust hardware-specific values:
 
 - serial ports, for example `/dev/ttyUSB0`, `/dev/ttyACM0`, or `/dev/cu.usbmodem...`
-- IP addresses, for example Modbus TCP hosts or remote GPIO hosts
+- IP addresses, for example Modbus TCP hosts, HTTP relay hosts, HTTP measurement hosts, or remote GPIO hosts
 - GPIO chips and lines, for example `/dev/gpiochip0`, line `17`
+- relay commands, for example serial ON/OFF hex command maps
+- measurement URLs and JSON fields
 - probe serials
 - CAN interfaces, for example `can0`
 - firmware paths, for example `build/fw.elf` or `build/firmware.bin`
 - expected UART/CAN/Modbus responses
+- current/voltage/temperature thresholds
 
 3. Run doctor to inspect your machine:
 
@@ -416,7 +610,7 @@ For examples that define the firmware artifact path inside `bench.yaml`, `--arti
 
 ---
 
-## Evidence Reports and traceability examples
+## Evidence Reports, measurements, and traceability
 
 Traceability examples may include fields like:
 
@@ -453,10 +647,24 @@ tests:
           within_ms: 5000
 ```
 
+Measurement examples may include steps like:
+
+```yaml
+- measure:
+    resource: supply_current
+    record_as: sleep_current_a
+    unit: A
+    expect_less_than: 0.150
+
+- assert_metric:
+    name: sleep_current_a
+    expect_less_than_or_equal: 0.150
+```
+
 These fields help BenchCI connect a run to:
 
 ```text
-requirement -> test case -> hardware run -> evidence artifact
+requirement -> test case -> hardware run -> evidence artifact -> measured behavior
 ```
 
 After a run, BenchCI can produce artifacts such as:
@@ -466,17 +674,21 @@ benchci-results/
 ├── results.json
 ├── evidence.json
 ├── evidence.html
+├── manifest.json
 ├── metadata.json
 ├── inputs/
 │   ├── bench.yaml
 │   └── suite.yaml
+├── resources/
+│   └── dut_power/
+│       └── power.log
 └── nodes/
     └── dut/
         ├── flash.log
         └── transport-console.log
 ```
 
-Use `evidence.html` for a human-readable report and `evidence.json` for machine-readable traceability.
+Use `evidence.html` for a human-readable report, `evidence.json` for machine-readable traceability and metrics, and `manifest.json` for artifact integrity hashes.
 
 ---
 
@@ -489,10 +701,33 @@ You must adapt:
 - ports
 - IP addresses
 - GPIO lines
+- relay commands
+- HTTP URLs
+- measurement JSON fields
 - hardware wiring
 - expected responses
 - firmware artifact paths
 - flashing tool configuration
+- measurement thresholds
+
+### Bench resources hide vendor details
+
+Power and measurement examples use the newer resource model:
+
+```text
+bench.yaml  -> how the lab hardware works
+suite.yaml  -> what the test wants to prove
+```
+
+For example, a suite should say:
+
+```yaml
+- power_cycle:
+    resource: dut_power
+    outlet: main
+```
+
+The suite should not need to know whether the outlet is controlled by GPIO, an HTTP relay, a generic serial relay, or a future SCPI power supply backend.
 
 ### One GPIO backend per node
 
@@ -544,6 +779,8 @@ Real setups usually start with:
 - one flashing method
 - one UART or fieldbus transport
 - one or two GPIO lines
+- one power resource if power cycling is needed
+- one measurement resource if physical behavior needs to be verified
 
 Examples can show more capability than a first production setup should use.
 
@@ -566,10 +803,19 @@ If you are new to BenchCI:
    - `05-local-gpio-reset-ready-advanced`
    - `07-remote-gpio-power-cycle-moderate`
 
-4. Try a more production-like provisioning flow:
+4. Try Power v2:
+   - `10-generic-serial-power-relay`
+   - `11-http-power-relay`
+   - `12-mock-power-control`
+
+5. Try Measurement v1:
+   - `13-http-measurement`
+   - `14-http-measurement-mock`
+
+6. Try a more production-like provisioning flow:
    - `04-gateway-jlink-provisioning-moderate`
 
-5. Try cloud execution after local validation.
+7. Try Cloud execution after local validation.
 
 ---
 
@@ -582,7 +828,12 @@ benchci login
 
 benchci benches list
 
-benchci run --cloud   --bench-id my-cloud-bench   --suite suite.yaml   --artifact build/fw.elf   --verbose
+benchci run \
+  --cloud \
+  --bench-id my-cloud-bench \
+  --suite suite.yaml \
+  --artifact build/fw.elf \
+  --verbose
 ```
 
 Use the dashboard to inspect:
@@ -590,6 +841,7 @@ Use the dashboard to inspect:
 - run status
 - evidence summary
 - traceability
+- metrics and measurements
 - failure classification
 - events
 - artifacts
@@ -609,9 +861,11 @@ These examples demonstrate that BenchCI supports:
 - multiple flashing backends
 - UART, Modbus RTU, Modbus TCP, and CAN
 - GPIO automation, both local and remote
+- Power v2 resources for generic serial relay, HTTP relay, and mock power control
+- Measurement v1 resources for HTTP and mock-style measurement workflows
 - multi-node orchestration
 - CI-friendly execution through Agent and Cloud Mode
-- structured results, logs, Evidence Reports, and traceability metadata
+- structured results, logs, Evidence Reports, traceability metadata, measurements, metrics, and artifact integrity manifests
 
 BenchCI scales from:
 

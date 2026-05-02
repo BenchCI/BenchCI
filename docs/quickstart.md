@@ -171,6 +171,68 @@ This suite checks that:
 
 ---
 
+## Optional: add power control
+
+After your first UART-only run works, you can make the suite closer to real CI by adding a bench-level power resource.
+
+In `bench.yaml`:
+
+```yaml
+resources:
+  dut_power:
+    kind: power_controller
+    driver:
+      type: gpio_power
+      chip: /dev/gpiochip0
+      outlets:
+        main: 17
+      active_high: true
+      initial_state: false
+```
+
+In `suite.yaml`:
+
+```yaml
+- power_cycle:
+    resource: dut_power
+    outlet: main
+    off_ms: 1000
+    on_settle_ms: 2000
+```
+
+This keeps the suite focused on intent while the bench file describes whether power is GPIO-backed, HTTP-backed, or driven by a serial relay command map.
+
+## Optional: add a measurement
+
+Measurement resources let you record physical behavior such as current or voltage.
+
+In `bench.yaml`:
+
+```yaml
+resources:
+  sleep_current:
+    kind: measurement
+    driver:
+      type: mock_measurement
+      quantity: current
+      value: 0.042
+      unit: A
+```
+
+In `suite.yaml`:
+
+```yaml
+- measure:
+    resource: sleep_current
+    record_as: sleep_current_a
+    unit: A
+    expect_less_than: 0.150
+```
+
+The measured value can appear in results, evidence reports, CLI summaries, and dashboard run detail where supported.
+
+---
+
 ## Optional: add traceability
 
 For a first run, a simple suite is enough. When you want evidence reports to show requirement or risk coverage, add optional traceability fields:

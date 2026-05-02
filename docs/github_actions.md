@@ -11,7 +11,7 @@ BenchCI CLI schedules a cloud run
         ↓
 Cloud-connected Agent flashes and tests real hardware
         ↓
-Results, evidence, and traceability return to GitHub Actions and the BenchCI dashboard
+Results, measurements, evidence, and traceability return to GitHub Actions and the BenchCI dashboard
 ```
 
 Use this when you want pull requests or pushes to validate firmware on real devices instead of stopping at compilation.
@@ -43,7 +43,7 @@ BenchCI Agent
     ↓
 real hardware bench
     ↓
-results + logs
+results + logs + measurements
 ```
 
 This avoids exposing your hardware lab directly to GitHub-hosted runners.
@@ -210,6 +210,9 @@ Typical contents include:
 
 ```text
 results.json
+evidence.json
+evidence.html
+manifest.json
 evidence.json
 evidence.html
 metadata.json

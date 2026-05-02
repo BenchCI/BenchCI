@@ -88,7 +88,16 @@ A node must define at least one of:
 
 ### `resources`
 
-Optional bench-level shared resources reserved for expansion.
+Optional bench-level shared resources such as power controllers and measurement sources.
+
+Resources keep suite logic hardware-agnostic. For example, a suite can use `power_cycle` without knowing whether the actual implementation is a GPIO relay, HTTP relay, or serial relay command map. A suite can use `measure` without knowing whether the value comes from a mock provider or a lab-controller HTTP endpoint.
+
+Common resource kinds:
+
+- `power_controller`
+- `measurement`
+
+See [Power Resources](power_resources.md) and [Measurement Resources](measurement_resources.md) for complete examples.
 
 ### `artifacts`
 
@@ -123,6 +132,7 @@ Doctor can help identify:
 - USB-UART / USB-RS485 adapters
 - USB relay devices
 - `/dev/gpiochipX` devices
+- missing modules needed by resource backends such as `serial`, `gpiod`, or `httpx`
 - missing tools such as OpenOCD, STM32CubeProgrammer, J-Link, or esptool
 
 `benchci validate` checks schema and suite/bench compatibility. `benchci doctor --bench` checks the current machine and hardware environment.
@@ -202,6 +212,63 @@ artifacts:
   root_dir: benchci-results
   per_node_dirs: true
 ```
+
+
+## Bench-level resources
+
+Bench-level resources describe shared hardware that is not naturally a DUT node transport, such as power controllers and measurement sources.
+
+### Power controller resource
+
+```yaml
+resources:
+  dut_power:
+    kind: power_controller
+    driver:
+      type: gpio_power
+      chip: /dev/gpiochip0
+      outlets:
+        main: 17
+      active_high: true
+      initial_state: false
+      on_settle_ms: 1000
+      off_settle_ms: 250
+```
+
+The suite can then use:
+
+```yaml
+- power_cycle:
+    resource: dut_power
+    outlet: main
+    off_ms: 1000
+    on_settle_ms: 2000
+```
+
+### Measurement resource
+
+```yaml
+resources:
+  sleep_current:
+    kind: measurement
+    driver:
+      type: mock_measurement
+      quantity: current
+      value: 0.042
+      unit: A
+```
+
+The suite can then use:
+
+```yaml
+- measure:
+    resource: sleep_current
+    record_as: sleep_current_a
+    unit: A
+    expect_less_than: 0.150
+```
+
+The important rule is: put hardware implementation details in `bench.yaml`; keep test intent in `suite.yaml`.
 
 ## Evidence impact of `bench.yaml`
 

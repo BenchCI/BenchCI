@@ -1,0 +1,32 @@
+version: "1"
+
+suite:
+  name: "mock-power-v2-demo"
+  description: "Exercise the Power v2 syntax without real relay hardware. Useful for docs and parser/runner smoke tests."
+  version: "1.0.0"
+  requirement_ids:
+    - REQ-POWER-001
+  tags:
+    - power-v2
+    - mock
+
+tests:
+  - name: "mock power cycle"
+    test_case_id: TC-MOCK-POWER-001
+    requirement_ids:
+      - REQ-POWER-001
+    tags: ["power", "mock"]
+    steps:
+      - power_set:
+          resource: dut_power
+          outlet: main
+          state: false
+      - sleep_ms: 100
+      - power_set:
+          resource: dut_power
+          outlet: main
+          state: true
+      - power_expect:
+          resource: dut_power
+          outlet: main
+          state: true

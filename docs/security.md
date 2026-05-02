@@ -40,6 +40,8 @@ Evidence artifacts may contain information that should be treated as internal en
 - bench and Agent identifiers
 - test names, requirement IDs, risk IDs, and logs
 - input snapshots of `bench.yaml` and `suite.yaml`
+- captured metrics and measurements
+- artifact integrity manifests
 
 Do not publish artifact ZIPs unless you have reviewed them. Treat evidence reports as workspace-scoped engineering records.
 
@@ -47,7 +49,7 @@ Do not publish artifact ZIPs unless you have reviewed them. Treat evidence repor
 
 Do not store Agent tokens, account passwords, or CI secrets in `bench.yaml`, `suite.yaml`, or evidence reports. Use environment variables and CI secret stores.
 
-For remote GPIO, prefer `token_env` so the token is read from the environment rather than committed to source control.
+For remote GPIO, HTTP relay, and HTTP measurement backends, prefer environment variables or private lab-network endpoints. Do not commit access tokens, passwords, or private controller URLs unless they are safe to share.
 
 ## Recommended Best Practices
 

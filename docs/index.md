@@ -68,9 +68,9 @@ suite.yaml  -> describes the test logic
 benchci run -> executes the suite on real hardware
 ```
 
-A **bench** is your physical setup: DUT, debugger, UART/CAN/Modbus adapters, GPIO, relays, and related resources.
+A **bench** is your physical setup: DUT, debugger, UART/CAN/Modbus adapters, GPIO, relays, power controllers, measurement instruments, and related resources.
 
-A **suite** is what should happen: flash, reset, send commands, wait for logs, read registers, check GPIO, validate CAN frames, or cycle power.
+A **suite** is what should happen: flash, reset, send commands, wait for logs, read registers, check GPIO, validate CAN frames, cycle power, take measurements, and assert metrics.
 
 An **Agent** is the hardware-connected process that lets CI or remote users run tests without sitting next to the device.
 
@@ -112,7 +112,17 @@ Control:
 - Linux GPIO
 - remote GPIO through Agent
 - mock GPIO
-- relay-backed power workflows
+- generic bench-level power resources
+- GPIO-backed power control
+- HTTP relay control
+- serial relay command maps
+
+Measurements:
+
+- mock measurement resources
+- HTTP/lab-controller measurement resources
+- suite-level `measure` steps
+- recorded metrics and threshold assertions
 
 Evidence and traceability:
 
@@ -122,6 +132,8 @@ Evidence and traceability:
 - firmware, suite, and bench config hashes
 - optional requirement, test case, risk, release, and tag metadata
 - structured failure explanations and suggested checks
+- artifact `manifest.json` with SHA256 hashes
+- captured measurements and metrics
 
 Execution:
 
@@ -145,6 +157,8 @@ github_actions.md
 gitlab_ci.md
 bench_config.md
 suite_config.md
+power_resources.md
+measurement_resources.md
 evidence_reports.md
 cli.md
 examples.md

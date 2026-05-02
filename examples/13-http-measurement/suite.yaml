@@ -1,0 +1,32 @@
+version: "1"
+suite:
+  name: http-measurement-v1-smoke
+  description: "Power-cycle the DUT and measure current through an HTTP lab-controller endpoint."
+  version: "0.1"
+  requirement_ids:
+    - REQ-SLEEP-CURRENT-001
+  tags:
+    - measurement
+    - http-controller
+
+tests:
+  - name: verify_sleep_current_from_http_controller
+    test_case_id: TC-MEAS-HTTP-001
+    requirement_ids:
+      - REQ-SLEEP-CURRENT-001
+    steps:
+      - power_cycle:
+          resource: dut_power
+          outlet: main
+          off_ms: 1000
+          on_settle_ms: 2000
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "SLEEP"
+          within_ms: 5000
+      - measure:
+          resource: supply_current
+          record_as: sleep_current_a
+          unit: A
+          expect_less_than: 0.100

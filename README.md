@@ -9,7 +9,7 @@
 
 > **Continuous Integration for real embedded hardware.**
 >
-> Build firmware in CI, flash a real device, run hardware tests, and get structured logs, failure explanations, and evidence reports back automatically.
+> Build firmware in CI, flash a real device, control bench resources, capture hardware metrics, and get structured logs, failure explanations, and evidence reports back automatically.
 
 ---
 
@@ -30,7 +30,7 @@ Watch BenchCI run real hardware tests directly from CI:
 - BenchCI schedules a real hardware bench
 - Device is flashed automatically
 - Tests run on actual hardware
-- Results, logs, artifacts, and evidence are returned to CI/dashboard
+- Results, logs, metrics, artifacts, and evidence are returned to CI/dashboard
 
 👉 No simulation. No mocks. Real hardware in the loop.
 
@@ -71,7 +71,7 @@ BenchCI will:
 - execute your test suite on real hardware
 - validate device behavior
 - explain common failures with structured context
-- generate structured results, logs, and evidence artifacts
+- generate structured results, logs, metrics, and evidence artifacts
 
 Create or access your workspace from:
 
@@ -103,13 +103,17 @@ A run produces artifacts such as:
 results.json
 evidence.json
 evidence.html
+manifest.json
 metadata.json
 inputs/bench.yaml
 inputs/suite.yaml
 flash logs
 transport logs
 GPIO/power logs
+measurement logs
 ```
+
+`manifest.json` records generated artifacts with hashes so a run can be reviewed later with stronger integrity context.
 
 ---
 
@@ -120,12 +124,43 @@ BenchCI can:
 - flash firmware with OpenOCD, STM32CubeProgrammer, J-Link, or esptool
 - talk to devices over UART, Modbus RTU/TCP, and CAN
 - control GPIO locally or through a remote Agent
-- control relay-backed power workflows
+- control relay-backed power workflows through Power v2 resources
+- capture measurements and assert metrics through Measurement v1 resources
 - run local tests on a hardware-connected machine
 - run remote tests through a customer-managed Agent
 - run cloud-scheduled tests through BenchCI Cloud
 - return artifacts, logs, structured results, and evidence reports to CI
-- show run history, failure context, traceability, and evidence in the dashboard
+- show run history, failure context, traceability, metrics, artifact integrity, and evidence in the dashboard
+
+---
+
+## Power and measurement resources
+
+BenchCI keeps test intent separate from vendor-specific lab hardware.
+
+In `suite.yaml`, a test can say:
+
+```yaml
+- power_cycle:
+    resource: dut_power
+    outlet: main
+    off_ms: 1000
+    on_settle_ms: 2000
+
+- measure:
+    resource: supply_current
+    record_as: sleep_current_a
+    unit: A
+    expect_less_than: 0.150
+```
+
+In `bench.yaml`, the resource defines how that action is performed.
+
+Power resources can be backed by GPIO, HTTP relays, generic serial relay command maps, or mocks.
+
+Measurement resources currently support mock and HTTP-backed providers, which can be connected to custom lab controllers or instrument wrapper services. Direct SCPI instrument support is a planned next backend.
+
+This means the suite can stay stable while the bench implementation changes from a Raspberry Pi GPIO relay to a LAN relay, serial relay, lab controller, or future instrument backend.
 
 ---
 
@@ -176,8 +211,10 @@ Evidence includes:
 - CI provider and CI job URL when available
 - run status and summary
 - structured failure details
+- captured metrics and measurements
 - input snapshots
 - artifact list
+- artifact manifest with SHA256 hashes
 
 Suites can optionally include traceability metadata:
 
@@ -264,6 +301,34 @@ benchci run -b bench.yaml -s suite.yaml -a build/fw.elf
 
 ---
 
+## Simple measurement example
+
+Measurement steps can record values into run metrics and assert thresholds.
+
+```yaml
+version: "1"
+
+suite:
+  name: low_power_smoke
+
+tests:
+  - name: sleep_current_limit
+    steps:
+      - measure:
+          resource: supply_current
+          record_as: sleep_current_a
+          unit: A
+          expect_less_than: 0.150
+
+      - assert_metric:
+          name: sleep_current_a
+          expect_less_than_or_equal: 0.150
+```
+
+The measurement resource itself is defined in `bench.yaml`, for example as a mock during development or an HTTP-backed lab controller in a real bench.
+
+---
+
 ## Diagnostics
 
 Use `benchci doctor` before running on hardware:
@@ -325,7 +390,9 @@ The dashboard shows:
 - run timeline
 - structured failure context
 - evidence summary
+- captured metrics and measurements
 - requirement/test/risk traceability
+- artifact manifest status
 - artifact download
 
 ---
@@ -350,7 +417,12 @@ examples/
 ├── 06-multi-node-uart-simple
 ├── 07-remote-gpio-power-cycle-moderate
 ├── 08-can-ecu-handshake-simple
-└── 09-stm32wl-boot-validation-traceable
+├── 09-stm32wl-boot-validation-traceable
+├── 10-generic-serial-power-relay
+├── 11-http-power-relay
+├── 12-mock-power-control
+├── 13-http-measurement
+└── 14-http-measurement-mock
 ```
 
 Each folder contains:
@@ -372,10 +444,25 @@ Start here:
 2. [Quickstart](https://docs.benchci.dev/quickstart.html)
 3. [End-to-End Example](https://docs.benchci.dev/end_to_end_example.html)
 4. [Evidence Reports](https://docs.benchci.dev/evidence_reports.html)
-5. [GitHub Actions](https://docs.benchci.dev/github_actions.html)
-6. [GitLab CI](https://docs.benchci.dev/gitlab_ci.html)
+5. [Power Resources](https://docs.benchci.dev/power_resources.html)
+6. [Measurement Resources](https://docs.benchci.dev/measurement_resources.html)
+7. [GitHub Actions](https://docs.benchci.dev/github_actions.html)
+8. [GitLab CI](https://docs.benchci.dev/gitlab_ci.html)
 
 Then use the reference docs for `bench.yaml`, `suite.yaml`, CLI commands, Agent, Cloud Mode, GPIO, architecture, dashboard, examples, and security.
+
+---
+
+## Current direction
+
+BenchCI 0.6.0 focuses on:
+
+- Power v2 resources for cleaner bench-level power control
+- Measurement v1 resources for captured metrics and threshold assertions
+- stronger evidence artifacts with `manifest.json`
+- dashboard visibility for metrics, traceability, and artifact integrity
+
+BenchCI is still intentionally lightweight compared with large HiL platforms. The goal is to make real hardware validation practical inside everyday CI workflows.
 
 ---
 

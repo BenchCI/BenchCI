@@ -1,0 +1,53 @@
+name: Bug report
+description: Something in BenchCI does not work as documented
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Please strip serial numbers, tokens, and firmware details from logs before posting.
+        For account, billing, or security-sensitive topics, email tech@benchci.dev instead — see SECURITY.md for vulnerabilities.
+  - type: input
+    id: version
+    attributes:
+      label: BenchCI version
+      description: Output of `benchci --version`
+      placeholder: "2.0.0"
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS / environment
+      placeholder: "Ubuntu 24.04 on Raspberry Pi 5 · GitHub Actions runner · macOS 15"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Local run (benchci run)
+        - Agent / direct-agent mode
+        - Cloud runs / scheduling
+        - Flashing (stlink/jlink/openocd/esptool)
+        - Transports (UART/CAN/Modbus/I2C/SPI)
+        - Evidence / reports / exports
+        - Import (JUnit/CTRF, run_external)
+        - Dashboard
+        - Docs / examples
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: What happened?
+      description: The command you ran, what you expected, what actually happened. Include `benchci doctor` output for bench-related issues.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output (sanitized)
+      render: shell

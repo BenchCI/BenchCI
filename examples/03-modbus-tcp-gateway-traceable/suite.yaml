@@ -1,0 +1,57 @@
+version: "1"
+suite:
+  name: "modbus-tcp-gateway-validation"
+  description: "Traceable Modbus TCP register/coil validation for release or QA evidence."
+  version: "1.0.0"
+  requirement_ids:
+    - REQ-MODBUS-TCP-001
+    - REQ-MODBUS-TCP-002
+  risk_ids:
+    - RISK-FIELDBUS-COMMS-001
+  tags:
+    - modbus
+    - ethernet
+    - traceability
+tests:
+  - name: "write and read holding register"
+    test_case_id: TC-MODBUS-TCP-REG-001
+    requirement_ids:
+      - REQ-MODBUS-TCP-001
+    risk_ids:
+      - RISK-FIELDBUS-COMMS-001
+    tags: ["register", "read-write"]
+    steps:
+      - modbus_write_single_register:
+          node: gateway
+          transport: api
+          slave: 1
+          address: 400
+          value: 7
+      - modbus_read_holding_registers:
+          node: gateway
+          transport: api
+          slave: 1
+          address: 400
+          count: 1
+          expect: [7]
+  - name: "write and read coil"
+    test_case_id: TC-MODBUS-TCP-COIL-001
+    requirement_ids:
+      - REQ-MODBUS-TCP-002
+    risk_ids:
+      - RISK-FIELDBUS-COMMS-001
+    tags: ["coil", "read-write"]
+    steps:
+      - modbus_write_single_coil:
+          node: gateway
+          transport: api
+          slave: 1
+          address: 10
+          value: true
+      - modbus_read_coils:
+          node: gateway
+          transport: api
+          slave: 1
+          address: 10
+          count: 1
+          expect: [true]

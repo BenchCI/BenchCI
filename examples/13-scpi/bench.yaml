@@ -1,0 +1,58 @@
+version: "1"
+
+bench:
+  name: scpi-simulator-measurement-bench
+  description: "SCPI measurement example using tools/scpi_simulator.py over TCP/IP."
+
+defaults:
+  node: simulator
+  timeouts:
+    within_ms: 1000
+
+nodes:
+  simulator:
+    kind: simulator
+    role: measurement_source
+    tags:
+      - scpi
+      - simulator
+      - measurement
+    transports:
+      console:
+        backend: uart
+        port: /dev/null
+        baud: 115200
+        timeout_ms: 100
+
+resources:
+  supply_current:
+    kind: measurement
+    driver:
+      type: scpi_power_supply_measurement
+      preset: generic
+      address: tcp://127.0.0.1:5025
+      quantity: current
+      timeout_ms: 1000
+
+  supply_voltage:
+    kind: measurement
+    driver:
+      type: scpi_power_supply_measurement
+      preset: generic
+      address: tcp://127.0.0.1:5025
+      quantity: voltage
+      timeout_ms: 1000
+
+  raw_supply_current:
+    kind: measurement
+    driver:
+      type: scpi_measurement
+      address: tcp://127.0.0.1:5025
+      query: "MEAS:CURR?"
+      quantity: current
+      unit: A
+      timeout_ms: 1000
+
+artifacts:
+  root_dir: benchci-results
+  per_node_dirs: true

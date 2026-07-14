@@ -1,0 +1,104 @@
+version: "1"
+
+suite:
+  name: "decision-table-safety-update"
+  description: "Decision table testing template for firmware update eligibility and safety logic."
+  version: "1.0.0"
+  release_id: "fw-decision-table-demo"
+  requirement_ids:
+    - REQ-UPDATE-ELIGIBILITY
+  risk_ids:
+    - RISK-UNSAFE-FIRMWARE-UPDATE
+    - RISK-UNSIGNED-FIRMWARE
+  tags:
+    - black-box
+    - decision-table
+    - safety
+    - acceptance
+    - update-flow
+
+tests:
+  - name: "rule 1 update rejected when battery is not ok"
+    test_case_id: TC-UPDATE-DT-RULE-001
+    requirement_ids:
+      - REQ-UPDATE-ELIGIBILITY
+    risk_ids:
+      - RISK-UNSAFE-FIRMWARE-UPDATE
+    tags:
+      - decision-table
+      - negative-test
+      - battery
+    steps:
+      - send_uart:
+          node: dut
+          transport: console
+          data: "update? battery=low signed=yes idle=yes\n"
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "UPDATE:REJECT BATTERY_LOW"
+          within_ms: 2000
+
+  - name: "rule 2 update rejected when firmware is unsigned"
+    test_case_id: TC-UPDATE-DT-RULE-002
+    requirement_ids:
+      - REQ-UPDATE-ELIGIBILITY
+    risk_ids:
+      - RISK-UNSIGNED-FIRMWARE
+    tags:
+      - decision-table
+      - negative-test
+      - signature
+    steps:
+      - send_uart:
+          node: dut
+          transport: console
+          data: "update? battery=ok signed=no idle=yes\n"
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "UPDATE:REJECT UNSIGNED"
+          within_ms: 2000
+
+  - name: "rule 3 update rejected when device is busy"
+    test_case_id: TC-UPDATE-DT-RULE-003
+    requirement_ids:
+      - REQ-UPDATE-ELIGIBILITY
+    risk_ids:
+      - RISK-UNSAFE-FIRMWARE-UPDATE
+    tags:
+      - decision-table
+      - negative-test
+      - busy-state
+    steps:
+      - send_uart:
+          node: dut
+          transport: console
+          data: "update? battery=ok signed=yes idle=no\n"
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "UPDATE:REJECT DEVICE_BUSY"
+          within_ms: 2000
+
+  - name: "rule 4 update allowed when all conditions are valid"
+    test_case_id: TC-UPDATE-DT-RULE-004
+    requirement_ids:
+      - REQ-UPDATE-ELIGIBILITY
+    risk_ids:
+      - RISK-UNSAFE-FIRMWARE-UPDATE
+      - RISK-UNSIGNED-FIRMWARE
+    tags:
+      - decision-table
+      - positive-test
+      - release-gate
+    steps:
+      - send_uart:
+          node: dut
+          transport: console
+          data: "update? battery=ok signed=yes idle=yes\n"
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "UPDATE:ALLOW"
+          within_ms: 2000

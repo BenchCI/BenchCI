@@ -1,0 +1,57 @@
+version: "1"
+
+suite:
+  name: low-power-sleep-current
+  description: >
+    Power-cycle the DUT, wait for it to settle into sleep mode,
+    measure supply current, and assert it stays below 150 mA.
+    Run against the SCPI simulator or a real programmable power supply.
+  version: "1.0.0"
+  requirement_ids:
+    - REQ-POWER-SLEEP-001
+  tags:
+    - low-power
+    - current
+    - smoke
+
+tests:
+  - name: sleep_current_within_limit
+    test_case_id: TC-LP-001
+    requirement_ids:
+      - REQ-POWER-SLEEP-001
+    tags:
+      - current
+      - sleep
+      - evidence
+    steps:
+      # Power-cycle the DUT and let it settle.
+      # Increase on_settle_ms on a real bench to match actual boot time.
+      - power_cycle:
+          resource: dut_power
+          outlet: main
+          off_ms: 500
+          on_settle_ms: 500
+
+      # On a real bench, add expect_uart / send_uart steps here to confirm
+      # the device has entered sleep mode before measuring current, e.g.:
+      #
+      #   - expect_uart:
+      #       node: dut
+      #       transport: console
+      #       contains: "SLEEP MODE"
+      #       within_ms: 5000
+
+      # Allow the device settling time before reading current.
+      - sleep_ms: 500
+
+      # Read supply current from the SCPI instrument or simulator.
+      - measure:
+          resource: supply_current
+          record_as: sleep_current_a
+          unit: A
+          expect_less_than: 0.150
+
+      # Re-assert the recorded metric as evidence.
+      - assert_metric:
+          name: sleep_current_a
+          expect_less_than_or_equal: 0.150

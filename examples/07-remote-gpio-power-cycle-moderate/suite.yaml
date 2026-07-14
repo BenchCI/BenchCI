@@ -1,0 +1,52 @@
+version: "1"
+
+suite:
+  name: "gpio-power-cycle"
+  description: "Power-cycle a device through BenchCI's high-level power resource API, verify healthy boot, and monitor heartbeat."
+  version: "1.0.0"
+  requirement_ids:
+    - REQ-POWER-001
+    - REQ-HEARTBEAT-001
+  tags:
+    - power
+    - gpio-power
+    - power-cycle
+    - heartbeat
+
+tests:
+  - name: "power cycle and boot"
+    test_case_id: TC-POWER-BOOT-001
+    requirement_ids:
+      - REQ-POWER-001
+    tags: ["power", "boot"]
+    steps:
+      - power_cycle:
+          resource: dut_power
+          outlet: main
+          off_ms: 1000
+          on_settle_ms: 2000
+      - power_expect:
+          resource: dut_power
+          outlet: main
+          state: true
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "SYSTEM READY"
+          within_ms: 5000
+      - gpio_get:
+          node: dut
+          line: fault_n
+          expect: false
+
+  - name: "heartbeat is alive"
+    test_case_id: TC-HEARTBEAT-001
+    requirement_ids:
+      - REQ-HEARTBEAT-001
+    tags: ["heartbeat"]
+    steps:
+      - gpio_wait_edge:
+          node: dut
+          line: heartbeat
+          edge: both
+          within_ms: 3000

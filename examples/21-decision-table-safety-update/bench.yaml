@@ -1,0 +1,31 @@
+version: "1"
+
+bench:
+  name: "decision-table-safety-update-bench"
+  description: "Validation-safe template bench for decision table testing of firmware update eligibility."
+
+defaults:
+  node: dut
+  timeouts:
+    within_ms: 2000
+
+nodes:
+  dut:
+    kind: mcu
+    role: primary
+    tags: ["dut", "uart", "decision-table"]
+    dut:
+      hardware_revision: "DT-DEMO"
+      serial_number: "DUT-DT-001"
+      asset_id: "LAB-DT-SLOT-01"
+      fixture_slot: "slot-01"
+    transports:
+      console:
+        backend: uart
+        port: "/dev/null"
+        baud: 115200
+        timeout_ms: 100
+
+artifacts:
+  root_dir: "benchci-results"
+  per_node_dirs: true

@@ -1,0 +1,84 @@
+version: "1"
+suite:
+  name: "traceable-release-smoke"
+  description: "Release-candidate smoke suite showing risk, requirement, test case, firmware, DUT, evidence, and release-review traceability."
+  version: "2.4.0-rc1"
+  release_id: "fw-2.4.0-rc1"
+  requirement_ids:
+    - REQ-BOOT-READY
+    - REQ-SELFTEST-STATUS
+    - REQ-SAFE-OUTPUTS
+  risk_ids:
+    - RISK-BOOT-LOCKUP
+    - RISK-SAFE-OUTPUT-STATE
+  tags:
+    - release-candidate
+    - regression
+    - system
+    - acceptance
+    - smoke
+    - traceability
+tests:
+  - name: "release candidate boots to ready state"
+    test_case_id: TC-BOOT-READY-001
+    requirement_ids:
+      - REQ-BOOT-READY
+    risk_ids:
+      - RISK-BOOT-LOCKUP
+    tags:
+      - confirmation
+      - functional
+      - boot
+      - uart
+    steps:
+      - flash:
+          node: dut
+      - reset:
+          node: dut
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "READY"
+          within_ms: 5000
+  - name: "self-test reports healthy status"
+    test_case_id: TC-SELFTEST-STATUS-001
+    requirement_ids:
+      - REQ-SELFTEST-STATUS
+    risk_ids:
+      - RISK-BOOT-LOCKUP
+    tags:
+      - regression
+      - functional
+      - self-test
+      - release-gate
+    steps:
+      - send_uart:
+          node: dut
+          transport: console
+          data: "selftest\n"
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "SELFTEST:PASS"
+          within_ms: 2000
+  - name: "safe outputs remain disabled after boot"
+    test_case_id: TC-SAFE-OUTPUTS-001
+    requirement_ids:
+      - REQ-SAFE-OUTPUTS
+    risk_ids:
+      - RISK-SAFE-OUTPUT-STATE
+    tags:
+      - maintenance
+      - non-functional
+      - safety
+      - output-state
+    steps:
+      - send_uart:
+          node: dut
+          transport: console
+          data: "outputs?\n"
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "OUTPUTS:DISABLED"
+          within_ms: 2000

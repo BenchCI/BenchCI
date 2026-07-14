@@ -1,0 +1,100 @@
+version: "1"
+
+suite:
+  name: owon-sps6051-5v-470ohm-load-validation
+  description: "BenchCI v1.0.0 validation suite for an OWON SPS6051 set to 5 V with a 470 ohm load resistor. Reads voltage, current, power, and configured setpoints over SCPI."
+  version: "1.0.0"
+  requirement_ids:
+    - REQ-OWON-SPS6051-5V-470R-001
+  tags:
+    - owon
+    - sps6051
+    - scpi
+    - power-supply
+    - usb-serial
+    - five-volt
+    - 470-ohm-load
+    - benchci-v1.0.0-demo
+
+# Expected ideal values for 5 V across 470 ohm:
+#   I = V / R = 5 / 470 = 0.0106 A
+#   P = V * I = 0.053 W
+# The limits below intentionally allow margin for resistor tolerance,
+# supply/readback tolerance, and lead/contact resistance.
+#
+# Note: OUTP? is intentionally not measured in this suite because this OWON
+# returned "ON\n" instead of a numeric 1. The current BenchCI numeric SCPI
+# measurement parser expects a number, so output state should be handled later
+# by a string/bool SCPI resource or driver enhancement.
+
+tests:
+  - name: validate_5v_output_with_470ohm_load
+    test_case_id: TC-OWON-SPS6051-5V-470R-001
+    requirement_ids:
+      - REQ-OWON-SPS6051-5V-470R-001
+    tags:
+      - voltage
+      - current
+      - power
+      - load
+      - evidence
+    steps:
+      - measure:
+          resource: owon_output_voltage
+          record_as: owon_output_voltage_v
+          unit: V
+          expect_greater_than: 4.800
+
+      - assert_metric:
+          name: owon_output_voltage_v
+          expect_less_than_or_equal: 5.200
+
+      - measure:
+          resource: owon_output_current
+          record_as: owon_output_current_a
+          unit: A
+          expect_greater_than: 0.008
+
+      - assert_metric:
+          name: owon_output_current_a
+          expect_less_than_or_equal: 0.015
+
+      - measure:
+          resource: owon_output_power
+          record_as: owon_output_power_w
+          unit: W
+          expect_greater_than: 0.040
+
+      - assert_metric:
+          name: owon_output_power_w
+          expect_less_than_or_equal: 0.080
+
+  - name: read_owon_sps6051_configured_setpoints
+    test_case_id: TC-OWON-SPS6051-5V-470R-002
+    requirement_ids:
+      - REQ-OWON-SPS6051-5V-470R-001
+    tags:
+      - voltage-setpoint
+      - current-setpoint
+      - readback
+      - evidence
+    steps:
+      - measure:
+          resource: owon_voltage_setpoint
+          record_as: owon_voltage_setpoint_v
+          unit: V
+          expect_greater_than: 4.800
+
+      - assert_metric:
+          name: owon_voltage_setpoint_v
+          expect_less_than_or_equal: 5.200
+
+      - measure:
+          resource: owon_current_setpoint
+          record_as: owon_current_setpoint_a
+          unit: A
+          expect_greater_than: 0.050
+
+      - assert_metric:
+          name: owon_current_setpoint_a
+          expect_less_than_or_equal: 1.000

@@ -1,0 +1,144 @@
+version: "1"
+
+suite:
+  name: "state-transition-update-flow"
+  description: "State transition testing template for a firmware update flow with valid and invalid transitions."
+  version: "1.0.0"
+  release_id: "fw-state-transition-demo"
+  requirement_ids:
+    - REQ-UPDATE-STATE-FLOW
+    - REQ-UPDATE-INVALID-TRANSITION-REJECTED
+  risk_ids:
+    - RISK-BRICKED-UPDATE
+    - RISK-INVALID-STATE-JUMP
+  tags:
+    - black-box
+    - state-transition
+    - system
+    - regression
+    - update-flow
+
+tests:
+  - name: "valid firmware update transition sequence reaches ready"
+    test_case_id: TC-UPDATE-ST-VALID-001
+    requirement_ids:
+      - REQ-UPDATE-STATE-FLOW
+    risk_ids:
+      - RISK-BRICKED-UPDATE
+    tags:
+      - state-transition
+      - valid-transition
+      - positive-test
+    steps:
+      - send_uart:
+          node: dut
+          transport: console
+          data: "update:start\n"
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "STATE:DOWNLOADING"
+          within_ms: 2000
+      - send_uart:
+          node: dut
+          transport: console
+          data: "update:download_complete\n"
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "STATE:VERIFYING"
+          within_ms: 2000
+      - send_uart:
+          node: dut
+          transport: console
+          data: "update:verify_ok\n"
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "STATE:INSTALLING"
+          within_ms: 2000
+      - send_uart:
+          node: dut
+          transport: console
+          data: "update:install_done\n"
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "STATE:REBOOTING"
+          within_ms: 2000
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "STATE:READY"
+          within_ms: 5000
+
+  - name: "install command is rejected before verification"
+    test_case_id: TC-UPDATE-ST-INVALID-001
+    requirement_ids:
+      - REQ-UPDATE-INVALID-TRANSITION-REJECTED
+    risk_ids:
+      - RISK-INVALID-STATE-JUMP
+      - RISK-BRICKED-UPDATE
+    tags:
+      - state-transition
+      - invalid-transition
+      - negative-test
+    steps:
+      - send_uart:
+          node: dut
+          transport: console
+          data: "update:start\n"
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "STATE:DOWNLOADING"
+          within_ms: 2000
+      - send_uart:
+          node: dut
+          transport: console
+          data: "update:install_now\n"
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "ERROR:INVALID_TRANSITION"
+          within_ms: 2000
+
+  - name: "verification failure returns update flow to idle"
+    test_case_id: TC-UPDATE-ST-RECOVERY-001
+    requirement_ids:
+      - REQ-UPDATE-STATE-FLOW
+      - REQ-UPDATE-INVALID-TRANSITION-REJECTED
+    risk_ids:
+      - RISK-BRICKED-UPDATE
+    tags:
+      - state-transition
+      - recovery
+      - negative-test
+    steps:
+      - send_uart:
+          node: dut
+          transport: console
+          data: "update:start\n"
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "STATE:DOWNLOADING"
+          within_ms: 2000
+      - send_uart:
+          node: dut
+          transport: console
+          data: "update:download_complete\n"
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "STATE:VERIFYING"
+          within_ms: 2000
+      - send_uart:
+          node: dut
+          transport: console
+          data: "update:verify_failed\n"
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "STATE:IDLE"
+          within_ms: 2000

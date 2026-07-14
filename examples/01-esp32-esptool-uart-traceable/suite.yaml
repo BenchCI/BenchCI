@@ -1,0 +1,55 @@
+version: "1"
+suite:
+  name: "esp32-esptool-uart-smoke"
+  description: "Traceable smoke test: flash ESP32 firmware, verify boot text, and check a simple UART command response."
+  version: "1.0.0"
+  release_id: "esp32-demo-fw"
+  requirement_ids:
+    - REQ-ESP-BOOT-001
+    - REQ-ESP-UART-001
+  risk_ids:
+    - RISK-ESP-BOOT-001
+  tags:
+    - smoke
+    - esp32
+    - uart
+    - traceability
+tests:
+  - name: "esp boots after flash"
+    test_case_id: TC-ESP-BOOT-001
+    requirement_ids:
+      - REQ-ESP-BOOT-001
+    risk_ids:
+      - RISK-ESP-BOOT-001
+    tags:
+      - boot
+      - flash
+    steps:
+      - flash:
+          node: esp
+      - reset:
+          node: esp
+      - expect_uart:
+          node: esp
+          transport: console
+          contains: "ESP READY"
+          within_ms: 5000
+  - name: "esp accepts ping command"
+    test_case_id: TC-ESP-UART-001
+    requirement_ids:
+      - REQ-ESP-UART-001
+    risk_ids:
+      - RISK-ESP-BOOT-001
+    tags:
+      - uart
+      - command-response
+    steps:
+      - send_uart:
+          node: esp
+          transport: console
+          data: "PING\n"
+      - expect_uart:
+          node: esp
+          transport: console
+          contains: "PONG"
+          within_ms: 1000

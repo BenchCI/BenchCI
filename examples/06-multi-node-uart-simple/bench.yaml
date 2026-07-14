@@ -1,0 +1,39 @@
+version: "1"
+bench:
+  name: "multi-node-system-smoke-bench"
+  description: "Simple two-node UART example: one DUT and one helper board. Useful for learning multi-node suites without traceability overhead."
+defaults:
+  node: dut
+  timeouts:
+    within_ms: 1500
+artifacts:
+  root_dir: "benchci-results"
+  per_node_dirs: true
+nodes:
+  dut:
+    kind: mcu
+    role: primary
+    tags: ["dut", "uart"]
+    flash:
+      backend: openocd
+      interface_cfg: "interface/stlink.cfg"
+      target_cfg: "target/stm32f4x.cfg"
+      artifact: "build/dut.elf"
+    reset:
+      method: openocd
+    transports:
+      console:
+        backend: uart
+        port: "/dev/ttyUSB0"
+        baud: 115200
+        timeout_ms: 100
+  helper:
+    kind: mcu
+    role: helper
+    tags: ["helper", "uart"]
+    transports:
+      shell:
+        backend: uart
+        port: "/dev/ttyUSB1"
+        baud: 115200
+        timeout_ms: 100

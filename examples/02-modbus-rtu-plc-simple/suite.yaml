@@ -1,0 +1,23 @@
+version: "1"
+suite:
+  name: "modbus-rtu-plc-simple"
+  description: "Simple Modbus RTU read example. No requirement IDs here; useful for learning the basics first."
+tests:
+  - name: "read status register"
+    steps:
+      - modbus_read_holding_registers:
+          node: plc
+          transport: fieldbus
+          slave: 10
+          address: 0
+          count: 1
+          expect: [1]
+  - name: "read coil state"
+    steps:
+      - modbus_read_coils:
+          node: plc
+          transport: fieldbus
+          slave: 10
+          address: 0
+          count: 1
+          expect: [true]

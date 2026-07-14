@@ -1,0 +1,45 @@
+version: "1"
+
+suite:
+  name: scpi-measurement-example
+  description: "Read current and voltage from the local SCPI simulator or a compatible TCP/IP SCPI instrument."
+  version: "1.0.0"
+  requirement_ids:
+    - REQ-MEAS-SCPI-001
+  tags:
+    - scpi
+    - measurement
+    - simulator
+
+tests:
+  - name: measure_supply_current_and_voltage
+    test_case_id: TC-SCPI-MEAS-001
+    requirement_ids:
+      - REQ-MEAS-SCPI-001
+    tags:
+      - current
+      - voltage
+      - evidence
+    steps:
+      - measure:
+          resource: supply_current
+          record_as: supply_current_a
+          unit: A
+          expect_less_than: 0.150
+
+      - measure:
+          resource: supply_voltage
+          record_as: supply_voltage_v
+          unit: V
+          expect_greater_than: 3.000
+          expect_less_than: 3.600
+
+      - measure:
+          resource: raw_supply_current
+          record_as: raw_supply_current_a
+          unit: A
+          expect_less_than: 0.150
+
+      - assert_metric:
+          name: supply_current_a
+          expect_less_than_or_equal: 0.150

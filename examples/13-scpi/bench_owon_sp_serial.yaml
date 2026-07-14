@@ -1,0 +1,109 @@
+version: "1"
+
+bench:
+  name: owon-sps6051-serial-scpi-bench
+  description: "Bench configuration for a single OWON SPS6051 programmable DC power supply over its USB-serial SCPI interface. No MCU or DUT is required; this setup is for a 5 V supply with a 470 ohm load resistor."
+
+variables:
+  owon_serial_address: serial:///dev/cu.usbserial-120
+  owon_uart_port: /dev/cu.usbserial-120
+  owon_baudrate: 115200
+
+defaults:
+  node: owon_sps6051
+  timeouts:
+    within_ms: 3000
+
+nodes:
+  owon_sps6051:
+    kind: power_supply
+    role: instrument_under_test
+    model: OWON SPS6051
+    tags:
+      - owon
+      - sps6051
+      - scpi
+      - usb-serial
+      - single-channel
+      - benchci-v1.0.0-demo
+    transports:
+      console:
+        backend: uart
+        port: /dev/cu.usbserial-120
+        baud: 115200
+        timeout_ms: 3000
+
+resources:
+  owon_output_voltage:
+    kind: measurement
+    driver:
+      type: scpi_measurement
+      address: serial:///dev/cu.usbserial-120
+      query: "MEAS:VOLT?"
+      quantity: voltage
+      unit: V
+      timeout_ms: 3000
+      baudrate: 115200
+      bytesize: 8
+      parity: N
+      stopbits: 1
+
+  owon_output_current:
+    kind: measurement
+    driver:
+      type: scpi_measurement
+      address: serial:///dev/cu.usbserial-120
+      query: "MEAS:CURR?"
+      quantity: current
+      unit: A
+      timeout_ms: 3000
+      baudrate: 115200
+      bytesize: 8
+      parity: N
+      stopbits: 1
+
+  owon_output_power:
+    kind: measurement
+    driver:
+      type: scpi_measurement
+      address: serial:///dev/cu.usbserial-120
+      query: "MEAS:POW?"
+      quantity: power
+      unit: W
+      timeout_ms: 3000
+      baudrate: 115200
+      bytesize: 8
+      parity: N
+      stopbits: 1
+
+  owon_voltage_setpoint:
+    kind: measurement
+    driver:
+      type: scpi_measurement
+      address: serial:///dev/cu.usbserial-120
+      query: "VOLT?"
+      quantity: voltage
+      unit: V
+      timeout_ms: 3000
+      baudrate: 115200
+      bytesize: 8
+      parity: N
+      stopbits: 1
+
+  owon_current_setpoint:
+    kind: measurement
+    driver:
+      type: scpi_measurement
+      address: serial:///dev/cu.usbserial-120
+      query: "CURR?"
+      quantity: current
+      unit: A
+      timeout_ms: 3000
+      baudrate: 115200
+      bytesize: 8
+      parity: N
+      stopbits: 1
+
+artifacts:
+  root_dir: benchci-results
+  per_node_dirs: true

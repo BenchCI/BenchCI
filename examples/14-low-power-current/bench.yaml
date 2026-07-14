@@ -1,0 +1,55 @@
+version: "1"
+
+bench:
+  name: low-power-current-bench
+  description: >
+    Low-power sleep current example.
+    Uses GPIO power control and a SCPI power supply measurement.
+    For measurement bring-up, run `python tools/scpi_simulator.py --current 0.042`.
+    For real hardware: replace dut_power chip/line values with your relay output,
+    and replace supply_current address with the real instrument address.
+
+defaults:
+  node: dut
+  timeouts:
+    within_ms: 5000
+
+nodes:
+  dut:
+    kind: mcu
+    role: primary
+    # On a real bench the transport port points to the DUT UART, e.g. /dev/ttyUSB0.
+    # /dev/null is used here so the example validates without a physical device.
+    transports:
+      console:
+        backend: uart
+        port: /dev/null
+        baud: 115200
+        timeout_ms: 100
+
+resources:
+  dut_power:
+    kind: power_controller
+    driver:
+      type: gpio_power
+      chip: /dev/gpiochip0
+      outlets:
+        main: 5
+      active_high: true
+      initial_state: false
+      on_settle_ms: 1000
+      off_settle_ms: 250
+
+  supply_current:
+    kind: measurement
+    driver:
+      type: scpi_power_supply_measurement
+      preset: generic
+      address: tcp://127.0.0.1:5025
+      quantity: current
+      unit: A
+      timeout_ms: 2000
+
+artifacts:
+  root_dir: benchci-results
+  per_node_dirs: true

@@ -1,0 +1,29 @@
+version: "1"
+suite:
+  name: "gateway-jlink-provisioning"
+  description: "Moderate example: includes test case IDs but keeps requirement/risk metadata small."
+  version: "1.0.0"
+  requirement_ids:
+    - REQ-GW-BOOT-001
+  tags:
+    - gateway
+    - jlink
+    - uart
+tests:
+  - name: "gateway boots after provisioning"
+    test_case_id: TC-GW-BOOT-001
+    requirement_ids:
+      - REQ-GW-BOOT-001
+    tags:
+      - provisioning
+      - boot
+    steps:
+      - flash:
+          node: gateway
+      - reset:
+          node: gateway
+      - expect_uart:
+          node: gateway
+          transport: console
+          contains: "GATEWAY READY"
+          within_ms: 5000

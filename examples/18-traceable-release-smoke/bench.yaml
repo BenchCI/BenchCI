@@ -1,0 +1,34 @@
+version: "1"
+bench:
+  name: "traceable-release-smoke-bench"
+  description: "Template bench for a release-readiness smoke test. Replace the flashing backend, serial port, and DUT identity fields for your board."
+defaults:
+  node: dut
+  timeouts:
+    within_ms: 1500
+artifacts:
+  root_dir: "benchci-results"
+  per_node_dirs: true
+nodes:
+  dut:
+    kind: mcu
+    role: primary
+    tags: ["dut", "release-candidate", "uart"]
+    dut:
+      hardware_revision: "EVT-2"
+      serial_number: "DUT-TRACE-001"
+      asset_id: "LAB-A1-SLOT-03"
+      fixture_slot: "slot-03"
+    flash:
+      backend: openocd
+      interface_cfg: "interface/stlink.cfg"
+      target_cfg: "target/stm32f4x.cfg"
+      artifact: "build/release-candidate.elf"
+    reset:
+      method: openocd
+    transports:
+      console:
+        backend: uart
+        port: "/dev/ttyUSB0"
+        baud: 115200
+        timeout_ms: 100

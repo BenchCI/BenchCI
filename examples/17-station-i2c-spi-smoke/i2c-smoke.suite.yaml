@@ -1,0 +1,29 @@
+version: "1"
+
+suite:
+  name: station_i2c_smoke
+  description: Real Station I2C smoke suite for bus scan and sensor identity register validation.
+  requirement_ids:
+    - REQ-STATION-I2C-001
+  tags:
+    - station
+    - i2c
+    - smoke
+
+tests:
+  - name: station_i2c_sensor_identity
+    test_case_id: TC-STATION-I2C-001
+    requirement_ids:
+      - REQ-STATION-I2C-001
+    steps:
+      - i2c_scan:
+          node: dut
+          transport: station_i2c
+          expect_addresses: [0x40]
+      - i2c_expect:
+          node: dut
+          transport: station_i2c
+          address: 0x40
+          register: 0x00
+          length: 2
+          expect: [0x12, 0x34]

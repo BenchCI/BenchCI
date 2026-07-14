@@ -1,0 +1,31 @@
+version: "1"
+
+bench:
+  name: "state-transition-update-flow-bench"
+  description: "Validation-safe template bench for firmware update state transition testing."
+
+defaults:
+  node: dut
+  timeouts:
+    within_ms: 2000
+
+nodes:
+  dut:
+    kind: mcu
+    role: primary
+    tags: ["dut", "uart", "state-transition"]
+    dut:
+      hardware_revision: "ST-DEMO"
+      serial_number: "DUT-ST-001"
+      asset_id: "LAB-ST-SLOT-01"
+      fixture_slot: "slot-01"
+    transports:
+      console:
+        backend: uart
+        port: "/dev/null"
+        baud: 115200
+        timeout_ms: 100
+
+artifacts:
+  root_dir: "benchci-results"
+  per_node_dirs: true

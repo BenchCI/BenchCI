@@ -1,0 +1,767 @@
+# Suite Configuration
+
+Use this page when you are ready to define the actual hardware test logic: steps, expectations, protocols, GPIO checks, power cycles, and validation rules.
+
+---
+
+BenchCI test suites are stored in `suite.yaml`. A suite defines named tests and ordered steps.
+
+## Top-level structure
+
+```yaml
+version: "1"
+
+suite:
+  name: smoke
+  description: Optional suite description
+
+tests:
+  - name: boot_ok
+    steps:
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "BOOT OK"
+          within_ms: 3000
+```
+
+## Main sections
+
+### `version`
+
+Schema version field. Use `1` or `"1"` in new suite files.
+
+### `suite`
+
+Suite metadata.
+
+```yaml
+suite:
+  name: smoke
+  description: First working suite
+```
+
+### `tests`
+
+Ordered list of test cases.
+
+Each test has:
+
+- `name`
+- `steps`
+
+## Example suite
+
+```yaml
+version: "1"
+
+suite:
+  name: stm32_smoke
+
+tests:
+  - name: boot_ok
+    steps:
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "[BOOT] OK"
+          within_ms: 3000
+
+  - name: ping
+    steps:
+      - send_uart:
+          node: dut
+          transport: console
+          data: "PING\n"
+
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "PONG"
+          within_ms: 1000
+
+  - name: irq_test
+    steps:
+      - gpio_wait_edge:
+          node: dut
+          line: irq
+          edge: rising
+          within_ms: 2000
+```
+
+## Optional traceability metadata
+
+Traceability fields are optional. Keep simple suites simple. Add these fields when a test should be connected to requirements, test cases, risks, releases, or evidence reports.
+
+Suite-level metadata can include:
+
+```yaml
+suite:
+  name: stm32_smoke
+  description: Basic real-hardware smoke test
+  version: "1.0.0"
+  release_id: "fw-0.3.5"
+  requirement_ids:
+    - REQ-BOOT-001
+  risk_ids:
+    - RISK-BOOT-001
+  tags:
+    - smoke
+    - hardware-ci
+```
+
+Each test can include:
+
+```yaml
+tests:
+  - name: boot_ok
+    test_case_id: TC-BOOT-001
+    requirement_ids:
+      - REQ-BOOT-001
+    risk_ids:
+      - RISK-BOOT-001
+    tags:
+      - boot
+      - uart
+    steps:
+      - expect_uart:
+          node: dut
+          transport: console
+          contains: "BOOT OK"
+          within_ms: 3000
+```
+
+These fields are copied into `results.json`, `evidence.json`, and `evidence.html` so a run can show which requirements, test cases, and risks were covered.
+
+A useful mental model is:
+
+```text
+Risk -> Requirement -> Test case -> BenchCI run evidence
+```
+
+## Recommended SDLC and test-intent tags
+
+Use `tags` when you want to make the purpose of a suite or test visible in reports, dashboards, release bundles, and reviews without adding a separate test-management system.
+
+Recommended lightweight vocabulary:
+
+| Tag | Use when |
+| --- | --- |
+| `component` | The check targets a low-level firmware module, driver behavior, or narrow DUT capability. |
+| `component-integration` | The check targets interactions between firmware modules, drivers, peripherals, or bench resources. |
+| `system` | The check validates end-to-end behavior of the DUT or product on real hardware. |
+| `system-integration` | The check validates interactions with external systems such as CAN, Modbus, network services, PLCs, gateways, or lab controllers. |
+| `acceptance` | The check supports release, customer, QA, regulatory, or stakeholder acceptance review. |
+| `regression` | The check should be run repeatedly to catch unintended changes after firmware updates. |
+| `confirmation` | The check confirms a previously observed defect has been fixed. |
+| `maintenance` | The check supports firmware patches, hardware revisions, toolchain upgrades, protocol changes, migrations, or retirement activities. |
+| `functional` | The check validates required behavior. |
+| `non-functional` | The check validates quality characteristics such as performance, reliability, security, power, timing, or maintainability. |
+| `black-box` | The check is designed from requirements, acceptance criteria, protocol behavior, or risk analysis. |
+| `white-box` | The check depends on implementation knowledge or uploaded coverage data. |
+| `boundary-value` | The check exercises values at or near ordered limits or thresholds. |
+| `decision-table` | The check represents a rule from a condition/action table. |
+| `state-transition` | The check exercises a valid or invalid firmware state transition. |
+
+Example:
+
+```yaml
+suite:
+  name: traceable-release-smoke
+  release_id: "fw-2.4.0-rc1"
+  tags:
+    - regression
+    - system
+    - acceptance
+
+tests:
+  - name: boot reaches ready state
+    test_case_id: TC-BOOT-READY-001
+    requirement_ids:
+      - REQ-BOOT-READY
+    risk_ids:
+      - RISK-BOOT-LOCKUP
+    tags:
+      - confirmation
+      - functional
+      - uart
+```
+
+These are conventions, not reserved keywords. Start with the tags that help your team review the evidence.
+
+For examples of test design technique tags, see [Test Design Techniques for Embedded Hardware](test_design_techniques.md).
+
+Recommended simple ID format:
+
+```text
+REQ-BOOT-001
+TC-BOOT-001
+RISK-BOOT-001
+```
+
+## Step types
+
+BenchCI currently supports these step types:
+
+- `reset`
+- `sleep_ms`
+- `flash`
+- `send_uart`
+- `expect_uart`
+- `modbus_read_holding_registers`
+- `modbus_write_single_register`
+- `modbus_read_coils`
+- `modbus_write_single_coil`
+- `gpio_set`
+- `gpio_get`
+- `gpio_expect`
+- `gpio_wait_edge`
+- `send_can`
+- `expect_can`
+- `i2c_scan`
+- `i2c_write_register`
+- `i2c_read_register`
+- `i2c_expect`
+- `spi_transfer`
+- `spi_expect`
+- `fuzz_uart`
+- `fuzz_can`
+- `fuzz_modbus`
+- `power_set`
+- `power_cycle`
+- `power_expect`
+- `measure`
+- `assert_metric`
+- `run_external`
+
+## Reset step
+
+```yaml
+- reset:
+    node: dut
+```
+
+Resets the selected node using the node’s configured `reset.method`.
+
+## Sleep step
+
+```yaml
+- sleep_ms: 100
+```
+
+Pauses execution for the requested number of milliseconds.
+
+## Flash step
+
+```yaml
+- flash:
+    node: dut
+```
+
+Optional step-level artifact override:
+
+```yaml
+- flash:
+    node: dut
+    artifact: build/alternate.elf
+```
+
+Artifact resolution order is:
+
+1. step artifact override
+2. CLI `--artifact`
+3. `node.flash.artifact` from `bench.yaml`
+
+## UART steps
+
+### Send text
+
+```yaml
+- send_uart:
+    node: dut
+    transport: console
+    data: "PING\n"
+```
+
+### Expect text by substring
+
+```yaml
+- expect_uart:
+    node: dut
+    transport: console
+    contains: "PONG"
+    within_ms: 1000
+```
+
+### Expect text by regex
+
+```yaml
+- expect_uart:
+    node: dut
+    transport: console
+    regex: "FW:[0-9.]+"
+    within_ms: 1000
+```
+
+`expect_uart` must define exactly one of:
+
+- `contains`
+- `regex`
+
+## Modbus steps
+
+### Read holding registers
+
+```yaml
+- modbus_read_holding_registers:
+    node: plc
+    transport: fieldbus
+    slave: 1
+    address: 100
+    count: 2
+    expect: [123, 456]
+```
+
+### Write single register
+
+```yaml
+- modbus_write_single_register:
+    node: plc
+    transport: fieldbus
+    slave: 1
+    address: 100
+    value: 42
+```
+
+### Read coils
+
+```yaml
+- modbus_read_coils:
+    node: plc
+    transport: fieldbus
+    slave: 1
+    address: 0
+    count: 2
+    expect: [true, false]
+```
+
+### Write single coil
+
+```yaml
+- modbus_write_single_coil:
+    node: plc
+    transport: fieldbus
+    slave: 1
+    address: 0
+    value: true
+```
+
+## GPIO steps
+
+### Set logical output value
+
+```yaml
+- gpio_set:
+    node: dut
+    line: reset_n
+    value: false
+```
+
+### Read logical input value
+
+```yaml
+- gpio_get:
+    node: dut
+    line: ready
+```
+
+With expectation:
+
+```yaml
+- gpio_get:
+    node: dut
+    line: ready
+    expect: true
+```
+
+### Wait for logical value
+
+```yaml
+- gpio_expect:
+    node: dut
+    line: ready
+    value: true
+    within_ms: 3000
+```
+
+### Wait for edge
+
+```yaml
+- gpio_wait_edge:
+    node: dut
+    line: irq
+    edge: rising
+    within_ms: 2000
+```
+
+Allowed edges are:
+
+- `rising`
+- `falling`
+- `both`
+
+## CAN steps
+
+### Send frame
+
+```yaml
+- send_can:
+    node: dut
+    transport: bus
+    frame:
+      id: 257
+      extended: false
+      data: "01 02 0A FF"
+```
+
+CAN FD frames add `fd: true` and can use up to 64 data bytes:
+
+```yaml
+- send_can:
+    node: dut
+    transport: bus
+    frame:
+      id: 0x123
+      extended: false
+      fd: true
+      bitrate_switch: true
+      data: "01 02 03 04 05 06 07 08 09 0A 0B 0C"
+```
+
+### Expect frame
+
+```yaml
+- expect_can:
+    node: dut
+    transport: bus
+    frame:
+      id: 513
+      extended: false
+      data: "AA BB"
+    within_ms: 1000
+```
+
+Expectations can match IDs and payload bytes with masks. With `allow_extra_data: true`,
+the `data`/`data_mask` rule is treated as a payload prefix.
+
+```yaml
+- expect_can:
+    node: dut
+    transport: bus
+    frame:
+      id: 0x520
+      id_mask: 0x7F0
+      extended: false
+      fd: true
+      data: "AA 00 BB"
+      data_mask: "FF 00 FF"
+      allow_extra_data: true
+    within_ms: 1000
+```
+
+## I2C steps
+
+I2C steps require a node transport with `backend: i2c`.
+
+### Scan addresses
+
+```yaml
+- i2c_scan:
+    node: dut
+    transport: board_i2c
+    expect_addresses: [0x40, 0x68]
+```
+
+### Write register
+
+```yaml
+- i2c_write_register:
+    node: dut
+    transport: board_i2c
+    address: 0x40
+    register: 0x01
+    value: [0x12, 0x34]
+```
+
+### Read or expect register bytes
+
+```yaml
+- i2c_read_register:
+    node: dut
+    transport: board_i2c
+    address: 0x40
+    register: 0x02
+    length: 2
+    expect: [0x00, 0x10]
+
+- i2c_expect:
+    node: dut
+    transport: board_i2c
+    address: 0x40
+    register: 0x03
+    length: 1
+    expect: [0x80]
+```
+
+## SPI steps
+
+SPI steps require a node transport with `backend: spi`. Data and expectations are hex byte strings.
+
+```yaml
+- spi_transfer:
+    node: dut
+    transport: flash_spi
+    data: "9F 00 00 00"
+
+- spi_expect:
+    node: dut
+    transport: flash_spi
+    data: "9F 00 00 00"
+    expect: "EF 40 18 00"
+```
+
+## Protocol fuzzing steps
+
+Fuzzing steps run bounded, reproducible robustness campaigns against real hardware. They are normal suite steps and can be mixed with flash, reset, smoke, protocol regression, power, and measurement steps.
+
+All fuzz steps support:
+
+- `seed`: deterministic seed. If omitted, BenchCI generates and records one.
+- `iterations`: maximum number of generated cases.
+- `max_duration_ms`: wall-clock bound for the step.
+- `stop_on_failure`: stop at the first failing case.
+- `inter_case_delay_ms`: optional delay between cases.
+
+Artifacts include a JSONL case log under `logs/fuzz/`, plus fuzz summaries in `results.json`, `evidence.json`, `evidence.html`, and artifact manifests.
+
+### UART fuzz
+
+```yaml
+- fuzz_uart:
+    node: dut
+    transport: console
+    seed: 12648430
+    iterations: 200
+    max_duration_ms: 30000
+    mode: ascii
+    min_length: 0
+    max_length: 64
+    dictionary: ["PING", "STATUS", "HELP"]
+    suffix: "\n"
+    fail_contains: "ASSERT"
+```
+
+### CAN fuzz
+
+```yaml
+- fuzz_can:
+    node: ecu
+    transport: canbus
+    seed: 49374
+    iterations: 200
+    id_min: 0x100
+    id_max: 0x1ff
+    min_data_length: 0
+    max_data_length: 8
+```
+
+### Modbus fuzz
+
+```yaml
+- fuzz_modbus:
+    node: gateway
+    transport: api
+    slave: 1
+    seed: 195936478
+    iterations: 200
+    operations:
+      - read_holding_registers
+      - write_single_register
+    address_min: 0
+    address_max: 127
+    count_min: 1
+    count_max: 4
+    allow_protocol_exceptions: true
+```
+
+See [Protocol Fuzzing](fuzzing.md) for replay examples using seed, step index, and case index.
+
+## External/HIL orchestration step
+
+`run_external` triggers an allow-listed external target from `bench.yaml`. Use it to orchestrate an existing simulator or HIL rig from CI and collect JUnit/CTRF plus logs and artifacts into normal BenchCI evidence.
+
+Command-mode composition is fixed:
+
+```text
+effective_argv = bench target argv_prefix + suite args
+```
+
+The suite cannot override the bench-owned prefix.
+
+```yaml
+- run_external:
+    target: canoe_smoke
+    cwd: runs/pr-142
+    args: ["smoke"]
+    timeout_ms: 900000
+    source: canoe
+    framework: hil
+    junit: reports/junit.xml
+    logs:
+      - logs/canoe.log
+    artifacts:
+      - captures
+```
+
+HTTP mode uses the target `base_url` from `bench.yaml`:
+
+```yaml
+- run_external:
+    target: rig_api
+    timeout_ms: 600000
+    http:
+      method: POST
+      url: runs
+      json:
+        suite: smoke
+      poll:
+        method: GET
+        url: runs/{job_id}
+        interval_ms: 1000
+    junit: reports/junit.xml
+```
+
+All suite-controlled local paths (`cwd`, `junit`, `ctrf`, `logs`, and `artifacts`) must be relative. BenchCI rejects absolute paths, `..` traversal, and symlink escapes at collection time.
+
+Collection is Agent-local. If the real HIL host is Windows and reached over SSH or HTTP, the wrapper/controller must copy reports and artifacts back to the Agent before the step exits.
+
+See [HIL Orchestration](hil-orchestration.md).
+
+## Timeout behavior
+
+Steps that need a timeout can either define `within_ms` explicitly or inherit it from:
+
+```yaml
+defaults:
+  timeouts:
+    within_ms: 1000
+```
+
+## Validation rules
+
+BenchCI cross-validates the suite against the bench before execution. For example:
+
+- referenced nodes must exist
+- referenced transports must exist on the selected node
+- transport backend must match the step type
+- I2C steps must use `i2c` transports
+- SPI steps must use `spi` transports
+- standard CAN IDs must be `<= 0x7FF`; extended CAN IDs must be `<= 0x1FFFFFFF`
+- classic CAN payloads can contain up to 8 bytes; CAN FD payloads can contain up to 64 bytes
+- CAN `data_mask` must contain the same number of bytes as `data`
+- fuzz actions must use compatible UART, CAN, Modbus RTU, or Modbus TCP transports and bounded iteration/duration values
+- referenced GPIO logical line names must exist
+- flashing requires the node to define a flash backend
+- referenced power resources must exist
+- referenced measurement resources must exist
+- fault injection must be enabled explicitly and every target must be allow-listed within the bench safety limit
+
+This catches many configuration mistakes before hardware execution starts.
+
+## Controlled fault injection steps
+
+BenchCI supports experimental power, GPIO, and malformed-UART-byte fault steps with a required UART recovery oracle:
+
+- `fault_inject_power_glitch`
+- `fault_inject_gpio_glitch`
+- `fault_inject_uart_noise`
+
+Power and GPIO state restoration runs in a `finally` path. CAN bus-off is not part of this release.
+
+See [Controlled Fault Injection](fault-injection.md) for complete YAML, hard limits, evidence behavior, and the real-hardware validation gate.
+
+
+## Power steps
+
+If your bench defines a supported power resource, suites can control outlets without exposing relay-specific commands in the test logic.
+
+### Set power state
+
+```yaml
+- power_set:
+    resource: dut_power
+    outlet: dut
+    state: true
+```
+
+### Power cycle
+
+```yaml
+- power_cycle:
+    resource: dut_power
+    outlet: dut
+    off_ms: 500
+    on_settle_ms: 2000
+```
+
+### Expect power state
+
+```yaml
+- power_expect:
+    resource: dut_power
+    outlet: dut
+    state: true
+```
+
+`power_expect` requires backend state readback or safe state tracking. Some generic serial relays only support ON/OFF commands and cannot report state.
+
+Power steps are useful for realistic hardware reset, boot recovery, and CI smoke tests.
+
+## Measurement and metric steps
+
+Measurement steps read bench-level measurement resources and can record values as metrics. The resource can be an HTTP lab-controller reading, raw SCPI query, SCPI power-supply measurement, I2C power monitor, script output, or serial sensor; the suite syntax stays the same.
+
+### Measure a resource
+
+```yaml
+- measure:
+    resource: sleep_current
+    record_as: sleep_current_a
+    unit: A
+    expect_less_than: 0.150
+```
+
+The `record_as` name becomes a metric that can be included in results and evidence.
+
+### Assert a metric
+
+```yaml
+- assert_metric:
+    name: sleep_current_a
+    expect_less_than_or_equal: 0.150
+```
+
+Metric assertions are useful when one step records a value and a later step validates it.
+
+Supported assertion styles include:
+
+```yaml
+expect_less_than: 0.150
+expect_less_than_or_equal: 0.150
+expect_greater_than: 3.0
+expect_greater_than_or_equal: 3.0
+expect_equal: 3.3
+tolerance: 0.05
+```
+
+Use `tolerance` with `expect_equal` for analog or physical measurements where exact equality is unrealistic.

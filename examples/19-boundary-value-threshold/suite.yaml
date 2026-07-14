@@ -1,0 +1,128 @@
+version: "1"
+
+suite:
+  name: "boundary-value-threshold"
+  description: "Boundary value analysis template for a 3.0 V to 4.2 V DUT safety range."
+  version: "1.0.0"
+  release_id: "fw-bva-demo"
+  requirement_ids:
+    - REQ-VOLTAGE-SAFE-RANGE
+  risk_ids:
+    - RISK-THRESHOLD-OFF-BY-ONE
+    - RISK-UNDERVOLTAGE
+    - RISK-OVERVOLTAGE
+  tags:
+    - black-box
+    - boundary-value
+    - non-functional
+    - measurement
+    - safety
+
+tests:
+  - name: "lower boundary below range is detected"
+    test_case_id: TC-BVA-VOLT-LOW-001
+    requirement_ids:
+      - REQ-VOLTAGE-SAFE-RANGE
+    risk_ids:
+      - RISK-UNDERVOLTAGE
+      - RISK-THRESHOLD-OFF-BY-ONE
+    tags:
+      - boundary-value
+      - negative-test
+      - lower-boundary
+    steps:
+      - measure:
+          resource: voltage_2v9
+          record_as: voltage_2v9_v
+          unit: V
+          expect_less_than: 3.0
+
+  - name: "lower boundary value is accepted"
+    test_case_id: TC-BVA-VOLT-LOW-002
+    requirement_ids:
+      - REQ-VOLTAGE-SAFE-RANGE
+    risk_ids:
+      - RISK-THRESHOLD-OFF-BY-ONE
+    tags:
+      - boundary-value
+      - lower-boundary
+      - positive-test
+    steps:
+      - measure:
+          resource: voltage_3v0
+          record_as: voltage_3v0_v
+          unit: V
+          expect_greater_than_or_equal: 3.0
+          expect_less_than_or_equal: 4.2
+
+  - name: "lower boundary neighbor is accepted"
+    test_case_id: TC-BVA-VOLT-LOW-003
+    requirement_ids:
+      - REQ-VOLTAGE-SAFE-RANGE
+    risk_ids:
+      - RISK-THRESHOLD-OFF-BY-ONE
+    tags:
+      - boundary-value
+      - lower-boundary
+      - positive-test
+    steps:
+      - measure:
+          resource: voltage_3v1
+          record_as: voltage_3v1_v
+          unit: V
+          expect_greater_than_or_equal: 3.0
+          expect_less_than_or_equal: 4.2
+
+  - name: "upper boundary neighbor is accepted"
+    test_case_id: TC-BVA-VOLT-UPPER-001
+    requirement_ids:
+      - REQ-VOLTAGE-SAFE-RANGE
+    risk_ids:
+      - RISK-THRESHOLD-OFF-BY-ONE
+    tags:
+      - boundary-value
+      - upper-boundary
+      - positive-test
+    steps:
+      - measure:
+          resource: voltage_4v1
+          record_as: voltage_4v1_v
+          unit: V
+          expect_greater_than_or_equal: 3.0
+          expect_less_than_or_equal: 4.2
+
+  - name: "upper boundary value is accepted"
+    test_case_id: TC-BVA-VOLT-UPPER-002
+    requirement_ids:
+      - REQ-VOLTAGE-SAFE-RANGE
+    risk_ids:
+      - RISK-THRESHOLD-OFF-BY-ONE
+    tags:
+      - boundary-value
+      - upper-boundary
+      - positive-test
+    steps:
+      - measure:
+          resource: voltage_4v2
+          record_as: voltage_4v2_v
+          unit: V
+          expect_greater_than_or_equal: 3.0
+          expect_less_than_or_equal: 4.2
+
+  - name: "upper boundary above range is detected"
+    test_case_id: TC-BVA-VOLT-UPPER-003
+    requirement_ids:
+      - REQ-VOLTAGE-SAFE-RANGE
+    risk_ids:
+      - RISK-OVERVOLTAGE
+      - RISK-THRESHOLD-OFF-BY-ONE
+    tags:
+      - boundary-value
+      - negative-test
+      - upper-boundary
+    steps:
+      - measure:
+          resource: voltage_4v3
+          record_as: voltage_4v3_v
+          unit: V
+          expect_greater_than: 4.2

@@ -1,0 +1,23 @@
+version: "1"
+bench:
+  name: "modbus-rtu-plc-validation-bench"
+  description: "Simple Modbus RTU example through a USB-RS485 adapter. Keep this one intentionally lightweight for first-time users."
+defaults:
+  node: plc
+  timeouts:
+    within_ms: 1500
+artifacts:
+  root_dir: "benchci-results"
+  per_node_dirs: true
+nodes:
+  plc:
+    kind: plc
+    role: primary
+    tags: ["modbus-rtu", "rs485"]
+    transports:
+      fieldbus:
+        backend: modbus_rtu
+        port: "/dev/ttyUSB1"       # Replace with your USB-RS485 adapter port.
+        baud: 9600
+        timeout_ms: 500
+        default_slave: 10

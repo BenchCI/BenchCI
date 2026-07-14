@@ -1,0 +1,37 @@
+version: "1"
+
+bench:
+  name: "protocol-fuzzing-bench"
+  description: "Template bench for bounded UART, CAN, and Modbus fuzzing. Remove transports you do not use."
+
+defaults:
+  node: dut
+  timeouts:
+    within_ms: 1000
+
+artifacts:
+  root_dir: "benchci-results"
+  per_node_dirs: true
+
+nodes:
+  dut:
+    kind: mcu
+    role: target
+    tags: ["fuzz", "uart", "can", "modbus"]
+    transports:
+      console:
+        backend: uart
+        port: "/dev/ttyUSB0"
+        baud: 115200
+        timeout_ms: 100
+      canbus:
+        backend: can
+        interface: "can0"
+        bitrate: 500000
+        timeout_ms: 500
+      api:
+        backend: modbus_tcp
+        host: "192.168.1.50"
+        port: 502
+        timeout_ms: 1000
+        default_slave: 1

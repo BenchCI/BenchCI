@@ -1,0 +1,36 @@
+version: "1"
+
+bench:
+  name: i2c_spi_register_bench
+  description: Example bench with board-level I2C and SPI transports.
+
+defaults:
+  node: dut
+  timeouts:
+    within_ms: 1000
+
+nodes:
+  dut:
+    kind: mcu
+    role: target
+    dut:
+      hardware_revision: "pcb-rev-b"
+      serial_number: "SN-EXAMPLE-001"
+      asset_id: "QA-DUT-001"
+      fixture_slot: "station-a-slot-1"
+    transports:
+      board_i2c:
+        backend: i2c
+        bus: 1
+        timeout_ms: 1000
+      flash_spi:
+        backend: spi
+        bus: 0
+        device: 0
+        max_speed_hz: 1000000
+        mode: 0
+        bits_per_word: 8
+
+artifacts:
+  root_dir: benchci-results
+  per_node_dirs: true

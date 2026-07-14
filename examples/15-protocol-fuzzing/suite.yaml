@@ -1,0 +1,95 @@
+version: "1"
+
+suite:
+  name: "protocol_fuzzing"
+  description: "Bounded protocol fuzzing examples with replayable seeds and case logs."
+  version: "1.0.0"
+  requirement_ids:
+    - REQ-PROTO-ROBUST
+  risk_ids:
+    - RISK-PARSER-LOCKUP
+  tags:
+    - fuzz
+    - robustness
+
+tests:
+  - name: uart_parser_fuzz
+    test_case_id: TC-UART-FUZZ-001
+    requirement_ids:
+      - REQ-PROTO-ROBUST
+    risk_ids:
+      - RISK-PARSER-LOCKUP
+    tags:
+      - uart
+      - fuzz
+    steps:
+      - fuzz_uart:
+          node: dut
+          transport: console
+          seed: 12648430
+          iterations: 200
+          max_duration_ms: 30000
+          mode: ascii
+          min_length: 0
+          max_length: 64
+          dictionary:
+            - PING
+            - STATUS
+            - HELP
+            - VERSION
+          suffix: "\n"
+          fail_contains: "ASSERT"
+          stop_on_failure: true
+
+  - name: can_frame_fuzz
+    test_case_id: TC-CAN-FUZZ-001
+    requirement_ids:
+      - REQ-PROTO-ROBUST
+    risk_ids:
+      - RISK-PARSER-LOCKUP
+    tags:
+      - can
+      - fuzz
+    steps:
+      - fuzz_can:
+          node: dut
+          transport: canbus
+          seed: 49374
+          iterations: 200
+          max_duration_ms: 30000
+          id_min: 0x100
+          id_max: 0x1ff
+          extended: false
+          fd: false
+          min_data_length: 0
+          max_data_length: 8
+          stop_on_failure: true
+
+  - name: modbus_operation_fuzz
+    test_case_id: TC-MODBUS-FUZZ-001
+    requirement_ids:
+      - REQ-PROTO-ROBUST
+    risk_ids:
+      - RISK-PARSER-LOCKUP
+    tags:
+      - modbus
+      - fuzz
+    steps:
+      - fuzz_modbus:
+          node: dut
+          transport: api
+          slave: 1
+          seed: 195936478
+          iterations: 200
+          max_duration_ms: 30000
+          operations:
+            - read_holding_registers
+            - write_single_register
+          address_min: 0
+          address_max: 127
+          count_min: 1
+          count_max: 4
+          value_min: 0
+          value_max: 65535
+          allow_protocol_exceptions: true
+          stop_on_failure: true

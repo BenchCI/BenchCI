@@ -1,0 +1,40 @@
+version: "1"
+
+bench:
+  name: station_i2c_spi_smoke
+  description: Station bench profile for validating board-level I2C and SPI buses.
+
+defaults:
+  node: dut
+  timeouts:
+    within_ms: 1000
+
+nodes:
+  dut:
+    kind: mcu
+    role: target
+    tags:
+      - station
+      - i2c
+      - spi
+    dut:
+      hardware_revision: "station-dut-rev"
+      serial_number: "STATION-DUT-SN"
+      asset_id: "STATION-DUT-ASSET"
+      fixture_slot: "station-slot"
+    transports:
+      station_i2c:
+        backend: i2c
+        bus: 1
+        timeout_ms: 1000
+      station_spi:
+        backend: spi
+        bus: 0
+        device: 0
+        max_speed_hz: 1000000
+        mode: 0
+        bits_per_word: 8
+
+artifacts:
+  root_dir: benchci-results
+  per_node_dirs: true

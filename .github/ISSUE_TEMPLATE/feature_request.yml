@@ -1,0 +1,21 @@
+name: Feature request
+description: Suggest a capability, transport, integration, or docs improvement
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The workflow or test scenario you want, in your own words. The problem matters more than the proposed feature.
+    validations:
+      required: true
+  - type: textarea
+    id: today
+    attributes:
+      label: How do you handle it today?
+      description: Workarounds, other tools, manual steps.
+  - type: input
+    id: hardware
+    attributes:
+      label: Relevant hardware / protocol (if any)
+      placeholder: "nRF52 + BLE · Zephyr on i.MX8 · CANoe rig"

@@ -1,0 +1,23 @@
+version: "1"
+
+suite:
+  name: station_spi_smoke
+  description: Real Station SPI smoke suite for JEDEC ID style response validation.
+  requirement_ids:
+    - REQ-STATION-SPI-001
+  tags:
+    - station
+    - spi
+    - smoke
+
+tests:
+  - name: station_spi_flash_identity
+    test_case_id: TC-STATION-SPI-001
+    requirement_ids:
+      - REQ-STATION-SPI-001
+    steps:
+      - spi_expect:
+          node: dut
+          transport: station_spi
+          data: "9F 00 00 00"
+          expect: "EF 40 18 00"

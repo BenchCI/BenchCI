@@ -1,0 +1,39 @@
+version: "1"
+
+suite:
+  name: i2c_spi_register_checks
+  description: Example board-level I2C and SPI checks.
+  requirement_ids:
+    - REQ-BUS-001
+  tags:
+    - i2c
+    - spi
+
+tests:
+  - name: i2c_sensor_identity
+    test_case_id: TC-I2C-001
+    requirement_ids:
+      - REQ-BUS-001
+    steps:
+      - i2c_scan:
+          node: dut
+          transport: board_i2c
+          expect_addresses: [0x40]
+      - i2c_expect:
+          node: dut
+          transport: board_i2c
+          address: 0x40
+          register: 0x00
+          length: 2
+          expect: [0x12, 0x34]
+
+  - name: spi_flash_identity
+    test_case_id: TC-SPI-001
+    requirement_ids:
+      - REQ-BUS-001
+    steps:
+      - spi_expect:
+          node: dut
+          transport: flash_spi
+          data: "9F 00 00 00"
+          expect: "EF 40 18 00"

@@ -1,0 +1,80 @@
+version: "1"
+
+bench:
+  name: "boundary-value-threshold-bench"
+  description: "Validation-safe template bench for boundary value analysis around a voltage safety range."
+
+defaults:
+  node: dut
+  timeouts:
+    within_ms: 1500
+
+nodes:
+  dut:
+    kind: mcu
+    role: primary
+    tags: ["dut", "measurement", "boundary-value"]
+    dut:
+      hardware_revision: "BVA-DEMO"
+      serial_number: "DUT-BVA-001"
+      asset_id: "LAB-BVA-SLOT-01"
+      fixture_slot: "slot-01"
+    transports:
+      console:
+        backend: uart
+        port: "/dev/null"
+        baud: 115200
+        timeout_ms: 100
+
+resources:
+  voltage_2v9:
+    kind: measurement
+    driver:
+      type: mock_measurement
+      quantity: voltage
+      value: 2.9
+      unit: V
+
+  voltage_3v0:
+    kind: measurement
+    driver:
+      type: mock_measurement
+      quantity: voltage
+      value: 3.0
+      unit: V
+
+  voltage_3v1:
+    kind: measurement
+    driver:
+      type: mock_measurement
+      quantity: voltage
+      value: 3.1
+      unit: V
+
+  voltage_4v1:
+    kind: measurement
+    driver:
+      type: mock_measurement
+      quantity: voltage
+      value: 4.1
+      unit: V
+
+  voltage_4v2:
+    kind: measurement
+    driver:
+      type: mock_measurement
+      quantity: voltage
+      value: 4.2
+      unit: V
+
+  voltage_4v3:
+    kind: measurement
+    driver:
+      type: mock_measurement
+      quantity: voltage
+      value: 4.3
+      unit: V
+
+artifacts:
+  root_dir: "benchci-results"
+  per_node_dirs: true

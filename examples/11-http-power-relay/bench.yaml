@@ -1,0 +1,53 @@
+version: "1"
+
+bench:
+  name: "http-relay-power-cycle-bench"
+  description: "Power example: DUT power is controlled through an HTTP relay or internal lab-controller API. Replace URLs with your relay/controller endpoints."
+
+defaults:
+  node: dut
+  timeouts:
+    within_ms: 2000
+
+artifacts:
+  root_dir: "benchci-results"
+  per_node_dirs: true
+
+resources:
+  dut_power:
+    kind: power_controller
+    driver:
+      type: http_relay
+      outlets:
+        main: "1"
+      on_url: "http://192.168.1.50/relay/{channel}/on"
+      off_url: "http://192.168.1.50/relay/{channel}/off"
+      get_url: "http://192.168.1.50/relay/{channel}/state"
+      method: GET
+      headers: {}
+      timeout_ms: 2000
+      on_values: ["1", "true", "on", "closed", "enabled"]
+      off_values: ["0", "false", "off", "open", "disabled"]
+      on_settle_ms: 1000
+      off_settle_ms: 500
+
+nodes:
+  dut:
+    kind: device
+    role: primary
+    tags: ["http-relay", "uart", "power-cycle"]
+    transports:
+      console:
+        backend: uart
+        port: "/dev/ttyUSB0"
+        baud: 115200
+        timeout_ms: 100
+    gpio:
+      heartbeat:
+        backend: local_gpio
+        chip: "/dev/gpiochip0"
+        line: 7
+        direction: input
+        active_high: true
+        bias: pull_down
+        edge: both

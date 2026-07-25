@@ -80,8 +80,21 @@ benchci benches list
 Example output:
 
 ```text
-my-bench    online    idle
+my-bench
+  configured_id: my-bench
+  cloud_id: my-bench
+  status: idle
 ```
+
+The configured ID is the value passed to `benchci agent cloud --bench-id`.
+BenchCI normally uses the same cloud ID. If that cloud ID is already in use,
+the backend assigns a tenant-safe cloud ID and preserves the configured ID as
+an alias. `benchci benches list` and `benchci benches show` display both.
+
+Cloud runs may use either the cloud ID or a configured alias that resolves to
+one accessible bench in the active workspace. If multiple accessible benches
+share the same configured alias, the API returns `409` with candidate cloud
+IDs; use one of those cloud IDs to disambiguate.
 
 ---
 
@@ -111,7 +124,7 @@ benchci run \
 BenchCI Cloud supports three firmware handling models:
 
 - `brokered`: the CLI uploads firmware bytes to BenchCI Cloud so the assigned Agent can fetch them.
-- `delete_after_fetch`: the CLI uploads firmware bytes, then BenchCI deletes retained source bytes after the assigned Agent fetches them.
+- `delete_after_fetch`: the CLI uploads firmware bytes, then BenchCI queues and immediately attempts deletion after the assigned Agent fetches them. A failed storage operation is retried.
 - `external_url`: the CLI sends a signed or private firmware URL plus SHA256. BenchCI stores only a redacted URL reference in run metadata and clears the full URL after Agent assignment.
 
 Workspace owners/admins can set the default policy in the dashboard. A run can override it when needed.

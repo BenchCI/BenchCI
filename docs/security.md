@@ -37,10 +37,12 @@ BenchCI Cloud records firmware integrity metadata separately from retained firmw
 Workspace policy controls the default run handling mode:
 
 - `brokered`: BenchCI Cloud brokers firmware bytes to the assigned Agent.
-- `delete_after_fetch`: BenchCI Cloud deletes retained source firmware bytes after the assigned Agent fetches them.
+- `delete_after_fetch`: after the assigned Agent fetches the bytes, BenchCI
+  commits the deletion request and immediately attempts physical deletion.
+  Storage failures remain queued for retry.
 - `external_url`: the run references a customer-controlled URL and SHA256; BenchCI stores a redacted URL reference and clears the full URL after Agent assignment.
 
-Runs store firmware SHA256, filename, size, handling mode, fetch/verification/deletion timestamps, and artifact audit events. Customer-initiated firmware deletion keeps evidence metadata, hashes, and audit history unless workspace policy is changed to remove evidence metadata.
+Runs store firmware SHA256, filename, size, handling mode, fetch/verification/deletion timestamps, and artifact audit events. `firmware_deleted_at` and the successful-deletion audit event are recorded only after physical deletion succeeds. Customer-initiated firmware deletion keeps evidence metadata, hashes, and audit history unless workspace policy is changed to remove evidence metadata.
 
 Use `benchci run --cloud --firmware-url URL --firmware-sha256 SHA256` when firmware bytes should not be uploaded to BenchCI Cloud. The Agent verifies the downloaded bytes before flashing.
 
@@ -160,5 +162,12 @@ events.
 BenchCI uses resource locking to prevent concurrent runs on the same machine from using the same physical interface at the same time.
 
 If another run is already using a required resource, BenchCI fails early with a resource-lock error instead of letting two runs fight over the same hardware.
+
+Locks are host-wide by default: `/tmp/benchci-locks` on POSIX and
+`%PROGRAMDATA%\BenchCI\locks` on Windows. This lets CI service accounts and
+interactive users coordinate access to the same hardware. Set
+`BENCHCI_LOCK_DIR` only when the replacement is a shared, machine-wide
+directory; BenchCI fails clearly if it cannot establish a safe shared lock
+location.
 
 Agent startup health checks are non-destructive by default and should not expose secrets. Keep Agent tokens, HTTP relay credentials, and measurement-controller credentials in environment variables or private secret stores.

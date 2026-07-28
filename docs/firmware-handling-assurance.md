@@ -16,11 +16,7 @@ Your CI pipeline uploads the firmware binary to BenchCI cloud storage. BenchCI f
 
 ### `delete_after_fetch` (privacy-first)
 
-Same upload path as `brokered`, but after the agent confirms receipt BenchCI
-commits a deletion job and immediately dispatches it. If the storage provider
-is temporarily unavailable, the run assignment still proceeds and deletion is
-retried with backoff. The artifact audit log records `firmware_deleted_at` and
-the successful-deletion event only after the physical object is gone.
+Same upload path as `brokered`, but BenchCI deletes the firmware from cloud storage immediately after the agent confirms receipt. The artifact audit log records `firmware_deleted_at` so you have a tamper-evident proof of deletion.
 
 **What BenchCI stores:** The SHA-256 hash, filename, and size remain in the run record for evidence review. The binary is gone.
 
@@ -57,7 +53,7 @@ Every firmware binary, run record, and evidence bundle is scoped to a workspace 
 | Mode | Binary retained | Hash retained | Deletion proof |
 |------|----------------|---------------|----------------|
 | brokered | Until retention window expires | Forever | `firmware_deleted_at` in run record |
-| delete_after_fetch | Deletion dispatched immediately after fetch; retried on storage failure | Forever | `firmware_deleted_at` + successful-deletion audit event |
+| delete_after_fetch | Deleted immediately after agent fetch | Forever | `firmware_deleted_at` + audit event |
 | external_url | Never uploaded | Forever | N/A — never held |
 
 Retention windows are configured per workspace under **Settings → Artifact Policy**.

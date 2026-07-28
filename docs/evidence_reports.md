@@ -4,6 +4,8 @@ Use this page when you want BenchCI runs to produce verification evidence that i
 
 BenchCI evidence reports are not a certification by themselves. They are structured records that help teams prove what was tested, where it ran, which firmware was used, and which requirements or risks were covered.
 
+Release evidence bundles also include an offline-verifiable hash manifest and, when configured, an Ed25519 signature. See [Release Evidence Bundle Integrity](evidence-integrity.md) for verification instructions and the trust-anchor limitations.
+
 ---
 
 ## How BenchCI maps testing concepts to evidence

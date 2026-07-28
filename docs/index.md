@@ -204,8 +204,10 @@ i2c-spi-station-wiring.md
 dut-self-identification.md
 fault-injection.md
 evidence_reports.md
+evidence-integrity.md
 junit-ctrf-import-guide.md
 hil-orchestration.md
+pytest-on-bench.md
 cli.md
 diagnostics.md
 examples.md

@@ -37,12 +37,10 @@ BenchCI Cloud records firmware integrity metadata separately from retained firmw
 Workspace policy controls the default run handling mode:
 
 - `brokered`: BenchCI Cloud brokers firmware bytes to the assigned Agent.
-- `delete_after_fetch`: after the assigned Agent fetches the bytes, BenchCI
-  commits the deletion request and immediately attempts physical deletion.
-  Storage failures remain queued for retry.
+- `delete_after_fetch`: BenchCI Cloud deletes retained source firmware bytes after the assigned Agent fetches them.
 - `external_url`: the run references a customer-controlled URL and SHA256; BenchCI stores a redacted URL reference and clears the full URL after Agent assignment.
 
-Runs store firmware SHA256, filename, size, handling mode, fetch/verification/deletion timestamps, and artifact audit events. `firmware_deleted_at` and the successful-deletion audit event are recorded only after physical deletion succeeds. Customer-initiated firmware deletion keeps evidence metadata, hashes, and audit history unless workspace policy is changed to remove evidence metadata.
+Runs store firmware SHA256, filename, size, handling mode, fetch/verification/deletion timestamps, and artifact audit events. Customer-initiated firmware deletion keeps evidence metadata, hashes, and audit history unless workspace policy is changed to remove evidence metadata.
 
 Use `benchci run --cloud --firmware-url URL --firmware-sha256 SHA256` when firmware bytes should not be uploaded to BenchCI Cloud. The Agent verifies the downloaded bytes before flashing.
 

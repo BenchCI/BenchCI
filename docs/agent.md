@@ -84,12 +84,7 @@ From a developer machine or CI environment:
 benchci benches list
 ```
 
-You should see the configured ID, cloud ID, and online/idle status. They are
-usually identical. If the configured ID collided with an existing cloud ID,
-BenchCI assigns a tenant-safe cloud ID while retaining the configured ID as a
-workspace alias. Runs can keep using a unique configured alias; use the cloud
-ID shown by `benchci benches list` if the backend reports that an alias is
-ambiguous.
+You should see the bench ID and online/idle status.
 
 You can also verify it in the dashboard:
 
